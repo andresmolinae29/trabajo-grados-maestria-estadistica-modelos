@@ -1,5 +1,10 @@
-import pandas as pd
 from abc import ABC, abstractmethod
+
+from ..schemas import (
+    PredictionResult,
+    EvaluationResult,
+    ModelConfig,
+)
 
 
 class BaseVolatilityModel(ABC):
@@ -13,15 +18,15 @@ class BaseVolatilityModel(ABC):
         raise NotImplementedError("The fit method must be implemented by the subclass.")
 
     @abstractmethod
-    def predict(self, X) -> pd.DataFrame:
+    def predict(self, X) -> PredictionResult:
         raise NotImplementedError("The predict method must be implemented by the subclass.")
 
     @abstractmethod
     @staticmethod
-    def evaluate(y_true, y_pred) -> dict[str, float]: # esto deberia ir con pydantic
+    def evaluate(y_true, y_pred) -> EvaluationResult:
         raise NotImplementedError("The evaluate method must be implemented by the subclass.")
 
-    def get_params(self) -> dict:
+    def get_params(self) -> ModelConfig:
         raise NotImplementedError("The get_params method must be implemented by the subclass.")
     
     def save(self, path: str) -> None:
