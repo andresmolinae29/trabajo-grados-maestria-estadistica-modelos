@@ -3,7 +3,7 @@ from __future__ import annotations
 from enum import StrEnum
 
 import pandas as pd
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class AssetType(StrEnum):
@@ -16,6 +16,8 @@ class AssetMetadata(BaseModel):
     symbol: str
     asset_type: AssetType
     description: str = ""
+    column_to_use: str = "close"
+    data_path: str = Field(default="", exclude=True)
 
 
 class TimeSeriesInput(BaseModel):
