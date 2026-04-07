@@ -1,4 +1,4 @@
-from __future__ import annotations
+# from __future__ import annotations
 
 from enum import StrEnum
 
@@ -21,8 +21,9 @@ class AssetMetadata(BaseModel):
 
 
 class TimeSeriesInput(BaseModel):
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+    model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
 
     metadata: AssetMetadata
     series: pd.Series
+    log_returns: pd.Series | None = None
     frequency: str = "15min"
