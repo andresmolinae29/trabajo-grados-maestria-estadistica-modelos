@@ -1,16 +1,18 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 
 from ..schemas import (
     PredictionResult,
     EvaluationResult,
-    ModelConfig,
+    ModelConfig
 )
 
 
 class BaseVolatilityModel(ABC):
 
     name: str
-    config: dict
+    config: ModelConfig
     is_fitted: bool = False
 
     @abstractmethod
@@ -22,8 +24,7 @@ class BaseVolatilityModel(ABC):
         raise NotImplementedError("The predict method must be implemented by the subclass.")
 
     @abstractmethod
-    @staticmethod
-    def evaluate(y_true, y_pred) -> EvaluationResult:
+    def evaluate(self, y_true, y_pred) -> EvaluationResult:
         raise NotImplementedError("The evaluate method must be implemented by the subclass.")
 
     def get_params(self) -> ModelConfig:

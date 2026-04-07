@@ -8,6 +8,7 @@ class EvaluationResult(BaseModel):
     asset: str
     rmse: float
     mae: float
+    versus_baseline: bool = True
     dm_statistic: float | None = None
     dm_p_value: float | None = None
 
