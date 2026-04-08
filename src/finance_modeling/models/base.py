@@ -15,6 +15,9 @@ class BaseVolatilityModel(ABC):
     config: ModelConfig
     is_fitted: bool = False
 
+    def __init__(self, model_type) -> None:
+        self.model_type = model_type
+
     @abstractmethod
     def fit(self, X, y):
         raise NotImplementedError("The fit method must be implemented by the subclass.")
@@ -29,6 +32,6 @@ class BaseVolatilityModel(ABC):
 
     def get_params(self) -> ModelConfig:
         raise NotImplementedError("The get_params method must be implemented by the subclass.")
-    
+
     def save(self, path: str) -> None:
         raise NotImplementedError("The save method must be implemented by the subclass.")

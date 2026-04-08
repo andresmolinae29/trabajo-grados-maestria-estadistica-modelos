@@ -1,9 +1,10 @@
-# from __future__ import annotations
+from __future__ import annotations
 
-from enum import StrEnum
-
+import os
 import pandas as pd
+from enum import StrEnum
 from pydantic import BaseModel, ConfigDict, Field
+from finance_modeling.utils import get_main_root
 
 
 class AssetType(StrEnum):
@@ -17,7 +18,16 @@ class AssetMetadata(BaseModel):
     asset_type: AssetType
     description: str = ""
     column_to_use: str = "close"
-    data_path: str = Field(default="", exclude=True)
+    data_folder: str = Field(exclude=True)
+    active: bool = True
+    data_path: str = Field(
+        default_factory=lambda: os.path.join("data", "files"),
+        exclude=True,
+    )
+
+
+class ListOfAssets(BaseModel):
+    assets: list[AssetMetadata]
 
 
 class TimeSeriesInput(BaseModel):
@@ -27,3 +37,6 @@ class TimeSeriesInput(BaseModel):
     series: pd.Series
     log_returns: pd.Series | None = None
     frequency: str = "15min"
+    train: pd.Series | None = None
+    test: pd.Series | None = None
+    split_index: int | None = None

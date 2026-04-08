@@ -1,0 +1,4 @@
+- name: "GARCH(1,1)"
+  hyperparameters:
+    p: 1
+    q: 1
