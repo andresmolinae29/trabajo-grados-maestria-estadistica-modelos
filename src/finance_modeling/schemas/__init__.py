@@ -1,9 +1,9 @@
 from .config import (
-    DataConfig,
     ExperimentConfig,
     ModelConfig,
 )
 from .data import (
+    ListOfAssets,
     AssetMetadata,
     AssetType,
     TimeSeriesInput,
@@ -21,11 +21,11 @@ __all__ = [
     "AssetMetadata",
     "AssetType",
     "ComparisonResult",
-    "DataConfig",
     "EvaluationResult",
     "ExperimentConfig",
     "ModelConfig",
     "PredictionResult",
     "PredictionRow",
     "TimeSeriesInput",
+    "ListOfAssets",
 ]

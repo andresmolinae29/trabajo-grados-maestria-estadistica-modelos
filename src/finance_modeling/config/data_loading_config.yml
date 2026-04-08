@@ -1,0 +1,6 @@
+- symbol: "BTC-USD"
+  active: true
+  data_folder: "bitcoin"
+  asset_type: "crypto"
+  description: "Bitcoin historical price data"
+  column_to_use: "close"

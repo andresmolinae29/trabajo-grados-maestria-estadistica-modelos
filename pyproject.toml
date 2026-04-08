@@ -23,7 +23,7 @@ dependencies = [
 ]
 
 [tool.poetry]
-packages = [{include = "trabajo_final_maestria_modelos", from = "src"}]
+packages = [{include = "finance_modeling", from = "src"}]
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

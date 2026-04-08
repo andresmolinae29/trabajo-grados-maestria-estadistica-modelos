@@ -1,3 +1,0 @@
-from .loaders import (
-    RawDataLoader
-)
