@@ -3,6 +3,8 @@ from finance_modeling.config import ConfigLoader
 
 from finance_modeling.data import RawDataLoader, DataPreprocessor
 
+from finance_modeling.models import GARCHModel
+
 
 def main():
     logger.info("Starting the experiment runner...")
@@ -32,9 +34,13 @@ def main():
 
             logger.info(f"Running model: {model.name} on asset: {asset.symbol}")
 
+            if model.name == "GARCH":
+                garch_model = GARCHModel(model, asset)
+                garch_model.fit(processed_data.train)
+                predictions = garch_model.predict(processed_data.train, processed_data.test)
+                evaluation_result = garch_model.evaluate(processed_data.test, predictions)
 
-
-
+                logger.info(f"Evaluation results for {model.name} on {asset.symbol}: RMSE={evaluation_result.rmse}, MAE={evaluation_result.mae}")
 
     logger.info("Experiment runner finished.")
 

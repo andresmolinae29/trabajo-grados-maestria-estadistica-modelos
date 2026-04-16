@@ -36,4 +36,8 @@ class RawDataLoader:
             metadata=self.data_config,
             series=df[self.data_config.column_to_use],
             frequency="15min",
+            log_returns=pd.Series(),
+            train=pd.Series(),
+            test=pd.Series(),
+            split_index=0
         )

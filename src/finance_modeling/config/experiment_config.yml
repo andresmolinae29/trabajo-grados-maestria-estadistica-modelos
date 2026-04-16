@@ -1,4 +1,8 @@
-- name: "GARCH(1,1)"
-  hyperparameters:
-    p: 1
-    q: 1
+- name: "GARCH"
+  hyperparameters_list:
+    - p: 1
+      q: 1
+    - p: 2
+      q: 2
+    - p: 3
+      q: 3

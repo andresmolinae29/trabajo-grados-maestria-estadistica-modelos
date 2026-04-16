@@ -11,7 +11,7 @@ from ..utils import get_main_root
 
 class ModelConfig(BaseModel):
     name: str
-    hyperparameters: dict[str, Any] = Field(default_factory=dict)
+    hyperparameters_list: list[dict[str, Any]] = Field(default_factory=list)
     random_seed: int = 42
 
 

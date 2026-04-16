@@ -1,0 +1,457 @@
+\documentclass[12pt]{paper}
+
+\oddsidemargin 0.27in
+\textwidth 5.9in
+%\topmargin -.5in
+\textheight 8.7in
+\parindent 0em
+\parskip 2ex
+
+%\renewcommand{\baselinestretch}{1.5}
+
+% New for newcommand, proglang and code
+\newcommand{\pkg}[1]{{\normalfont\fontseries{b}\selectfont #1}}
+\let\proglang=\textsf
+\let\code=\texttt
+
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{verbatim} %poner comentarios largos
+\usepackage[hang,small,sf]{caption}
+\markright{}
+\usepackage{graphicx}
+\usepackage{amsfonts}
+\usepackage{multicol}
+\usepackage{hyperref}
+\usepackage{amsmath,amsfonts,amsthm,amssymb,mathrsfs,latexsym}
+\usepackage{textcomp}
+\usepackage{multirow, array}
+\usepackage[natbibapa]{apacite}
+\usepackage{float}
+\usepackage{comment}
+\usepackage{mathrsfs}
+\usepackage{upgreek}
+\usepackage{makecell}
+
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, shapes.geometric}
+
+\usepackage[numbib]{tocbibind} % Para incluir la sección de referencias en TOC, agregó Freddy en 2021/11
+\usepackage{xcolor} % Para incluir texto en colores, agregó Freddy en 2021/11
+\usepackage{hyperref} % Para incluir hyper-enlaces, agregó Freddy en 2021/11
+
+\usepackage{adjustbox, array, hhline}
+\usepackage{makecell}
+\renewcommand\theadfont{\normalfont\bfseries}
+\renewcommand{\baselinestretch}{1.15}
+
+%---------------------------------------------------------------------------------
+\begin{document}
+\renewcommand{\BOthers}[1]{et al.\hbox{}}
+
+%---------------------------------------------------------------------------------
+\newpage{\pagestyle{empty}\cleardoublepage}
+
+\newpage
+\begin{center}
+\thispagestyle{empty} \vspace*{0cm} \textbf{\huge Anteproyecto de}\\ \textbf{\huge Maestría en Ciencias-Estadística} \\ [2.0cm]
+\Large\textbf{Andrés Molina Escobar} \\
+Estudiante de Maestría en Ciencias-Estadística\\[3.0cm]
+Director:\\
+Cesar Augusto Gomez Velez \\
+Profesor Asistente,
+Departamento de Estadística\\[1.0cm]
+
+\centering
+\includegraphics[scale=0.30]{las_figuras/logo_unal.png}
+
+Universidad Nacional de Colombia \\
+Departamento de Estadística \\
+Medellín, Colombia \\
+2025\\
+\end{center}
+
+%---------------------------------------------------------------------------------
+\newpage
+\tableofcontents
+\newpage
+
+\section[Información general]{Información general}
+
+\textbf{Título:} Comparación de metodologías estadísticas y de aprendizaje profundo para el modelamiento de la volatilidad en series financieras intradía
+
+$\begin{array}{ll}
+\textbf{Estudiante: Andres Molina Escobar}   \\
+\textbf{Correo-e: } amolinae@unal.edu.co
+\end{array}$
+
+$\begin{array}{ll}
+\textbf{Director: Cesar Augusto Gomez Velez} & \-\ \-\ \\
+\textbf{Profesor Asistente}\\
+\textbf{Departamento de Estadística}\\
+\textbf{Correo-e: } cagomez6@unal.edu.co & \-\ \-\
+\end{array}$
+
+%---------------------------------------------------------------------------------
+\section[Resumen]{Resumen}
+
+La predicción de la volatilidad en los mercados financieros es un desafío central debido a la naturaleza no estacionaria y caótica de series intradía como divisas, índices y criptomonedas. Aunque existen diversos enfoques, la mayoría de los estudios se centra en un solo tipo de activo o en una única metodología, sin comparaciones sistemáticas entre modelos clásicos y modernos. Este trabajo tiene como propósito evaluar y comparar el desempeño de modelos tradicionales de series de tiempo (ARCH [Heterocedasticidad Condicional Autorregresiva] / GARCH [Generalización de la Heterocedasticidad Condicional Autorregresiva]) frente a enfoques basados en redes neuronales e híbridos (PSOQRNN [Red Neuronal Recurrente optimizada por Enjambre de Partículas en su versión cuantílica] y CEEMDAN-LSTM [Descomposición Empírica de Modos en Conjunto Completa con Ruido Adaptativo combinada con LSTM]) en distintos activos financieros intradía. La metodología comprende la revisión de la literatura, la preparación de datos, la implementación de los modelos y la comparación de su desempeño mediante métricas de error (RMSE [Raíz del Error Cuadrático Medio], MAE [Error Absoluto Medio], prueba de Diebold–Mariano [prueba estadística para comparar la precisión de dos modelos de pronóstico]) y criterios cualitativos de eficiencia computacional y robustez.
+
+%---------------------------------------------------------------------------------
+\section[Planteamiento del problema]{Planteamiento del problema}
+
+La predicción de precios en el mercado accionario siempre ha sido un tema de gran interés para los inversionistas, debido a que con ello podrían implementar estrategias de inversión que les permitan maximizar sus retornos y, al mismo tiempo, minimizar los riesgos que conlleva participar en dicho mercado. Sin embargo, la alta volatilidad de estos instrumentos de inversión ocasiona que esta tarea requiera altos niveles de pericia en la lectura de la información del mercado para tomar las decisiones correctas de compra/venta.
+
+Teniendo en cuenta lo anterior, se han desarrollado diferentes técnicas para pronosticar estos valores, para lo cual se utilizan las series de tiempo resultantes de la interacción intradía en estos mercados o, dicho de otro modo, del resultado de la negociación entre oferta y demanda. No obstante, comparadas con otras series de tiempo, las financieras son no estacionarias y caóticas \cite{Yaotang2000}, lo cual hace que sean altamente sensibles y que cualquier movimiento, por pequeño que sea, pueda modificar completamente el resultado esperado. A esto se suman otras características adicionales que dificultan la tarea:
+
+\begin{enumerate}
+    \item Suelen comportarse, desde un punto de vista teórico, como caminatas aleatorias, haciendo que la predicción sea casi imposible \cite{Hellstrom1998}.
+    \item Son series con mucho ruido y presentan grandes variaciones incluso intradía \cite{MagdonIsmail1998}.
+    \item Sus propiedades estadísticas pueden cambiar a lo largo del tiempo \cite{Hellstrom1998}.
+\end{enumerate}
+
+En este trabajo se abordará la predicción de la volatilidad de series financieras intradía correspondientes a divisas (USD--EUR), índices bursátiles (S\&P500) y criptomonedas (Bitcoin y Ethereum), lo que permite abarcar distintos tipos de activos con comportamientos diferenciados pero igualmente complejos. Más que lograr identificar el precio exacto del instrumento de inversión, se buscará encontrar patrones o tendencias en dicha variabilidad por medio de modelos clásicos como el GARCH, así como mediante nuevos enfoques basados en redes neuronales e incluso modelos mixtos de descomposición/predicción que contribuyan a identificar la tendencia de alza o baja de dichos activos. Aunque la implementación directa en estrategias de trading algorítmico no se abordará en este trabajo, los resultados obtenidos podrían servir como insumo para este tipo de aplicaciones prácticas.
+
+%---------------------------------------------------------------------------------
+\subsection[Titulo]{Título}
+Comparación de metodologías estadísticas y de aprendizaje profundo para el modelamiento de la volatilidad en series financieras intradía.
+
+%---------------------------------------------------------------------------------
+\subsection[Objetivos]{Objetivos}
+En esta sección se presentarán los objetivos generales y específicos del problema planteado.
+
+%---------------------------------------------------------------------------------
+\subsubsection[Objetivo general]{Objetivo general}
+
+Comparar distintas metodologías de modelamiento de volatilidad en series financieras intradía, evaluando su desempeño y capacidad de predicción con el fin de identificar enfoques más robustos para el análisis de mercados altamente volátiles.
+%---------------------------------------------------------------------------------
+\subsubsection[Objetivos específicos]{Objetivos específicos}
+
+\begin {itemize}
+\item Evaluar y comparar el desempeño de modelos tradicionales (ARCH/GARCH) y modelos basados en redes neuronales (PSOQRNN, CEEMDAN-LSTM) mediante métricas de precisión y ajuste en series financieras intradía.
+\item Determinar, para cada tipo de activo analizado (divisas, índices y criptomonedas), la metodología que ofrece un mejor ajuste y capacidad predictiva frente a la volatilidad observada.
+\item  Analizar cómo las propiedades estadísticas distintivas de cada tipo de activo (divisas, índices y criptomonedas) influyen en la superioridad predictiva de una metodología sobre otra.
+\end{itemize}
+
+\subsection[Marco teórico]{Marco teórico}
+
+El marco teórico de este trabajo se estructura en torno a tres ejes fundamentales que permiten contextualizar el problema y sustentar la comparación de metodologías. En primer lugar, se presenta una descripción del funcionamiento de los mercados financieros y del papel del \textit{eTrading} en la dinámica actual de negociación de activos. Posteriormente, se revisan los principales enfoques estadísticos y computacionales empleados en la identificación de patrones y predicción de precios, haciendo énfasis en sus fundamentos y aplicaciones. Finalmente, se detallan los modelos específicos que serán objeto de análisis en este estudio, incluyendo los métodos tradicionales de series de tiempo, como GARCH, así como propuestas modernas basadas en redes neuronales y modelos híbridos. Esta revisión proporciona las bases conceptuales necesarias para entender las fortalezas y limitaciones de cada metodología en el modelamiento de la volatilidad.
+
+\subsubsection[Mercado - eTrading]{Mercado - eTrading}
+
+\paragraph{Mercados financieros}
+Son espacios físicos y virtuales, donde se intercambian diferentes activos financieros, como monedas, índices, criptomonedas, productos básicos, entre otros. Los precios en los que estos se negocian dependen de distintos factores, tales como la oferta y la demanda, las condiciones macroeconómicas e incluso la especulación. En este contexto, surgen sistemas como el \textit{eTrading}, que son plataformas digitales a través de las cuales se tranzan dichos activos, y que han permitido un incremento exponencial en la participación del mercado. Este crecimiento, sin embargo, también ha generado una mayor volatilidad en los precios, en parte como consecuencia del uso de algoritmos de alta frecuencia \cite{jansen2020machine}
+
+\paragraph{Algoritmos de alta frecuencia}
+Dentro de este panorama, los algoritmos de alta frecuencia constituyen una forma automatizada de realizar operaciones de trading mediante algoritmos matemáticos o pasos lógicos, los cuales pueden apalancarse en técnicas de \textit{machine learning} o en modelos estadísticos para la predicción o identificación de patrones. El objetivo principal es ejecutar operaciones que conduzcan a la optimización de un portafolio de inversión. En última instancia, esta práctica busca la generación de una rentabilidad que excede la obtenida respecto a un \textit{benchmark} \cite{jansen2020machine} o marco de referencia, por ejemplo, instrumentos básicos de inversión como un CDT (certificados de depósito a término) que suelen ser inversiones muy simples.
+
+\paragraph{Trading algorítmico}
+Más allá de la alta frecuencia, el trading algorítmico, en un sentido amplio, comprende el uso de algoritmos, incluidos modelos de aprendizaje automático, para procesar el flujo de órdenes de compra y venta, así como las estadísticas de volumen y precios asociadas. El propósito de este enfoque es extraer señales de trading que permitan inferir la dinámica de oferta y demanda, o bien identificar comportamientos característicos de determinados participantes del mercado \cite{jansen2020machine}.
+
+\subsubsection[Modelos de predicción e identifación de patrones]{Modelos de predicción e identifación de patrones}
+Teniendo en cuenta lo anterior, la complejidad derivada del alto volumen de transacciones y la volatilidad de los mercados financieros plantea la necesidad de implementar técnicas avanzadas de predicción de volatilidad y de identificación de patrones. Para ello, se han desarrollado diferentes modelos estadísticos y computacionales, entre los que destacan ARCH (Modelo heterocedástico autorregresivo), GARCH (Modelo generalizado ARCH) y enfoques híbridos que integran métodos tradicionales con técnicas modernas, como PSOQRNN (Regresión neuronal quantil entrenada con \textit{optimización de enjambre de partículas}) o CEEMDAN-LSTM (Descomposición de series de tiempo combinada con redes de memoria a largo plazo).
+
+\subsubsection[Modelos GARCH]{Model GARCH}
+
+El modelo ARCH(q) (Heterocedasticidad Condicional Autorregresiva) propuesto por \cite{engle1982arch} asume que la serie $\{y_t\}$ puede escribirse como:
+
+\begin{equation}
+    y_t = \mu + \varepsilon_t,
+    \qquad
+    \varepsilon_t = \sigma_t z_t,
+    \qquad
+    z_t \sim \text{i.i.d. }N(0,1),
+\end{equation}
+
+donde $y_t$ es la observación en el tiempo $t$, $\mu$ es la media constante,
+$\varepsilon_t$ es la innovación o error, $z_t$ es un choque estandarizado con media cero y varianza uno,
+y $\sigma_t$ representa la desviación estándar condicional en el tiempo $t$.
+
+La heterocedasticidad condicional se modela como:
+
+\begin{equation}
+    \sigma_t^2 = \alpha_0 + \sum_{i=1}^{q} \alpha_i \varepsilon_{t-i}^2,
+    \qquad \alpha_0 > 0,\ \alpha_i \ge 0,
+\end{equation}
+
+donde $\alpha_0$ representa una varianza base o nivel mínimo
+y los coeficientes $\alpha_i$ determinan cuánto peso tienen los errores pasados
+sobre la varianza presente. En particular, valores grandes de errores pasados
+($\varepsilon_{t-i}^2$) incrementan la varianza condicional actual.
+
+\vspace{0.3cm}
+
+\noindent\textbf{Volatilidad en racimos.}
+Un rasgo empírico típico de las series financieras es la presencia de \emph{volatilidad en racimos}
+(\emph{volatility clustering}), que se manifiesta en periodos consecutivos de alta variabilidad
+seguida de más alta variabilidad, y periodos tranquilos seguidos de variabilidad baja.
+El modelo ARCH captura este fenómeno mediante la dependencia explícita de $\sigma_t^2$
+respecto a los errores pasados. En términos cualitativos,
+
+\begin{equation}
+\begin{aligned}
+\varepsilon_{t-1}^2 \ \text{grande}
+&\ \Rightarrow\
+\sigma_t^2 \ \text{grande (alta volatilidad futura)},\\[4pt]
+\varepsilon_{t-1}^2 \ \text{pequeño}
+&\ \Rightarrow\
+\sigma_t^2 \ \text{pequeña (baja volatilidad futura)}.
+\end{aligned}
+\end{equation}
+
+Esto reproduce el comportamiento observado en los mercados: los grandes cambios tienden a agruparse en el tiempo, en lugar de ocurrir de manera aislada.
+
+Posteriormente, \cite{bollerslev1986garch} generalizó este enfoque con el siguiente modelo \textbf{GARCH(p,q)} (ARCH Generalizado), que incorpora retardos de la varianza condicional para lograr una representación más parsimoniosa:
+
+\begin{equation}
+\sigma_t^2 = \alpha_0 + \sum_{i=1}^{q} \alpha_i \varepsilon_{t-i}^2
++ \sum_{j=1}^{p} \beta_j \sigma_{t-j}^2
+\end{equation}
+
+con condiciones de positividad: \(\alpha_0 > 0, \; \alpha_i \geq 0, \; \beta_j \geq 0\). Este modelo es ampliamente utilizado para estimar y predecir la volatilidad de activos financieros.
+
+\subsubsection[PSOQRNN]{PSOQRNN}
+
+El modelo PSOQRNN surge como una propuesta híbrida que integra técnicas de optimización y aprendizaje automático con el propósito de mejorar la predicción de series financieras. Su planteamiento combina la eficiencia exploratoria del algoritmo PSO (\cite{kennedy1995}) en la búsqueda de parámetros con la capacidad del QRNN (\cite{taylor2000qrnn} para capturar dinámicas no lineales bajo un esquema de pérdida cuantílica. A continuación, se describen los componentes principales de este enfoque.
+
+\paragraph{a. PSO}
+El algoritmo PSO es una técnica de optimización metaheurística inspirada en el comportamiento colectivo de sistemas naturales, como bandadas de aves o bancos de peces. Fue propuesto por \cite{kennedy1995} como una alternativa eficiente para resolver problemas de optimización en espacios complejos, especialmente cuando no se dispone de información completa sobre la función objetivo.
+
+El modelo inicia con un valor de velocidad de las partículas generado de manera aleatoria. La velocidad de cada partícula es actualizada con respecto a su antigua posición y el mejor vecino, además de la mejor partícula global. Esto se repite hasta que el criterio de convergencia se encuentra satisfecho.
+
+Formalmente, para cada partícula $i$ en la iteración $t$, la velocidad y posición se actualizan de la siguiente manera:
+
+\begin{equation}
+v_i^{t+1} = \omega v_i^{t} + c_1 r_1 (pbest_i - x_i^{t}) + c_2 r_2 (gbest - x_i^{t}),
+\end{equation}
+
+\begin{equation}
+x_i^{t+1} = x_i^{t} + v_i^{t+1},
+\end{equation}
+
+donde $v_i^{t}$ es la velocidad de la partícula $i$ en la iteración $t$, $x_i^{t}$ su posición, $pbest_i$ la mejor posición personal encontrada por la partícula, $gbest$ la mejor posición global encontrada por todo el enjambre, $\omega$ es el factor de inercia, $c_1$ y $c_2$ son coeficientes de aceleración, y $r_1, r_2 \sim U(0,1)$ son variables aleatorias uniformes.
+
+\paragraph{b. QRNN}
+El modelo propuesto por \cite{taylor2000qrnn} es una red neuronal recurrente de una sola capa oculta, que consiste en una entrada de valores que están conectados a la capa oculta que se encuentra conectada a una sola neurona de resultado. La diferencia de esta con redes tradicionales se encuentra en el proceso de entrenamiento, dado que su función de pérdida no es el MSE (Error cuadrático medio), sino la pérdida cuantílica, que penaliza errores de forma asimétrica dependiendo del cuantil que se quiera encontrar.
+
+El método combinado propuesto por \cite{pradeepkumar2017forecasting} utiliza el PSO para estimar los pesos y el bias, que usualmente en el QRNN es realizado por medio de BP (Back propagation) el cual es un método que se demora en converger y puede caer en la trampa de mínimos locales. Por el contrario, el PSO ayuda a converger de una manera más rápida y puede encontrar un valor más cerca del mínimo global al convergir.
+
+La formulación genérica de la pérdida cuantílica, donde $L_{\tau}$ representa la función de pérdida asociada al cuantil $\tau$ utilizada como función objetivo en el modelo QRNN, se define como:
+
+\begin{equation}
+L_{\tau}(y, \hat{y}) =
+\begin{cases}
+\tau (y - \hat{y}), & \text{si } y \geq \hat{y}, \\
+(\tau - 1)(y - \hat{y}), & \text{si } y < \hat{y},
+\end{cases}
+\end{equation}
+
+donde $y$ representa el valor real, $\hat{y}$ la predicción del modelo, y $\tau \in (0,1)$ es el cuantil de interés. Esta función penaliza de manera asimétrica los errores de predicción, lo que permite que el modelo se ajuste directamente a la estimación del cuantil especificado en lugar del valor esperado.
+
+\subsubsection[CEEMDAN-LSTM]{CEEMDAN-LSTM}
+
+Es un enfoque que combina la descomposición de señales con redes neuronales profundas, buscando mejorar la predicción en series no lineales y no estacionarias.
+
+\paragraph{a. CEEMDAN}
+Propuesto por \cite{torres2011ceemdan} aparece como propuesta frente al modelo EEMD (Descomposición Empírica de Modos en Ensamble), el cual no es capaz de eliminar el ruido blanco en la reconstrucción de las series. En términos generales, el modelo aplica una transformación a los datos descomponiéndolos en nodos más simples llamados \textit{IMFs} (Funciones de Modo Intrínseco), eliminando o disminuyendo el ruido y separando la señal en diferentes frecuencias.
+
+El proceso de selección es el siguiente:
+\begin{enumerate}
+    \item Se identifican los mínimos y máximos locales.
+    \item Se generan dos envolventes, uno superior y uno inferior, que pasan por dichos valores mediante una interpolación cúbica o curva suave.
+    \item Se calcula el promedio de los envolventes.
+    \item Se resta este valor de la serie original y se repite el procedimiento hasta obtener una función cuya media sea cercana a cero, dando lugar al primer \textit{IMF}.
+    \item Este \textit{IMF} se resta de la serie original para obtener un residuo, con el cual se continúa iterando y generando nuevos \textit{IMFs}, hasta que el residuo final sea una función casi monótona.
+\end{enumerate}
+
+La serie puede reconstruirse sumando todos los \textit{IMFs} y el residuo $R_n$:
+
+\begin{equation}
+ Y(t) = \sum_{i=1}^{n} IMF_i(t) + R_n(t)
+\end{equation}
+
+donde $IMF_i(t)$ denota el $i$-ésimo modo intrínseco obtenido tras el proceso de descomposición, el cual representa un componente oscilatorio de la señal con una banda de frecuencia bien definida, y $R_n(t)$ corresponde al residuo después de extraer $n$ modos, capturando la tendencia de largo plazo o el componente no oscilatorio restante.
+
+\paragraph{b. LSTM}
+Propuesto por \cite{hochreiter1997lstm}, y posteriormente mejorado por \cite{graves2006ctc}, surge para lidiar con los problemas de desvanecimiento y explosión del gradiente, que dificultan el aprendizaje a largo plazo. El modelo consiste en cuatro redes neuronales encadenadas y diferentes bloques de memoria llamados células, entre las cuales se encuentran:
+
+\begin{enumerate}
+    \item \textbf{Input gate}: determina qué información se incorpora en el modelo.
+    \item \textbf{Forget gate}: establece qué información debe ser descartada.
+    \item \textbf{Output gate}: regula la información que se envía al siguiente bloque de memoria.
+\end{enumerate}
+
+Esto le permite recordar patrones relevantes a largo plazo y descartar ruido, lo cual resulta útil al trabajar con series de alta variabilidad. Asimismo, para prevenir el sobreentrenamiento, el modelo descarta de manera aleatoria algunas unidades, de acuerdo a su aprendizaje a través del entrenamiento, dado que con este empieza a reconocer patrones estadísticos.
+
+El método CEEMDAN-LSTM propone entrenar redes neuronales LSTM independientes para cada \textit{IMF} y para el residuo, aplicando previamente una normalización de los datos. Cada red cuenta con su propio ajuste de hiperparámetros \cite{cao2019financial}. Finalmente, en la fase de predicción, los resultados de cada LSTM se combinan para reconstruir la señal, que corresponde a la suma de los \textit{IMFs} pronosticados más el residuo pronosticado:
+
+\begin{equation}
+ \hat{Y}(t) = \sum_{i=1}^{n} \widehat{IMF}_i(t) + \widehat{R}_n(t)
+\end{equation}
+
+donde $\widehat{IMF}_i(t)$ representa la predicción del $i$-ésimo modo intrínseco e $\widehat{R}_n(t)$ corresponde a la predicción del residuo. La suma de estas predicciones permite recuperar una estimación $\hat{Y}(t)$ de la señal original en el dominio temporal.
+
+\subsection{Métricas de evaluación}
+
+Para cuantificar el desempeño predictivo de los modelos se emplean tres criterios ampliamente aceptados en la literatura:
+
+\textbf{(i) Error cuadrático medio (RMSE).} Penaliza fuertemente errores grandes, siendo adecuado cuando las desviaciones amplias son especialmente costosas \cite{chai2014root}.
+
+\textbf{(ii) Error absoluto medio (MAE).} Mide el error medio sin sobredimensionar outliers, proporcionando una escala interpretable en las mismas unidades de la serie \cite{willmott2005advantages}.
+
+\textbf{(iii) Test de Diebold--Mariano (DM).} Permite contrastar estadísticamente si las diferencias entre dos modelos en términos de error de predicción son significativas \cite{diebold1995comparing}.
+
+Estas métricas combinan valoración absoluta del error (RMSE, MAE) con comparación estadística formal (DM), permitiendo evaluar tanto el \emph{nivel} como la \emph{superioridad} de desempeño predictivo.
+
+\section{Antecedentes del Problema Propuesto}
+
+Los modelos \textbf{ARCH} y \textbf{GARCH} continúan siendo fundamentales para modelar y predecir la volatilidad financiera. Algunas aplicaciones recientes incluyen:
+
+\begin{itemize}
+    \item \textbf{Alta frecuencia (HFT):} Modelos GARCH, incluyendo variantes EGARCH y TGARCH, se han utilizado para prever la volatilidad en mercados de alta frecuencia, mostrando alta persistencia y mejorando predicciones al combinarse con técnicas de aprendizaje automático \cite{hft2024}.
+
+    \item \textbf{Índices bursátiles globales:} Se aplicaron GARCH y TGARCH para analizar volatilidad en índices como S\&P 500, FTSE 100 o Nikkei 225, capturando volatilidad asimétrica durante eventos críticos \cite{marisetty2024}.
+
+\end{itemize}
+
+No obstante, a pesar de su solidez, los modelos de la familia GARCH presentan limitaciones conocidas. Siendo modelos paramétricos, a menudo imponen supuestos restrictivos sobre la distribución de los errores y luchan por capturar dinámicas no lineales complejas, efectos de largo plazo o cambios estructurales abruptos. Esta dificultad se magnifica en series financieras modernas, caracterizadas por alta frecuencia (datos intradía), no estacionariedad y ruido elevado, como las observadas en los mercados de criptomonedas
+
+Es precisamente este interés por superar dichas limitaciones y mejorar la precisión predictiva en entornos complejos lo que ha motivado la combinación de modelos estadísticos con técnicas de aprendizaje automático y metaheurísticas. En particular, dos líneas recientes cobran relevancia para este trabajo: las redes de regresión cuantílica optimizadas por enjambre de partículas (PSOQRNN) y los esquemas de descomposición de la señal combinados con LSTM (CEEMDAN-LSTM). A continuación se sintetizan los antecedentes y aplicaciones recientes de ambas aproximaciones.
+
+\paragraph{PSOQRNN.}
+El modelo PSOQRNN —que integra la función de pérdida cuantílica (QRNN) con una etapa de ajuste por Particle Swarm Optimization (PSO)— fue propuesto como alternativa para estimar cuantiles condicionales y mejorar la robustez frente a mínimos locales en el entrenamiento de redes \citep{pradeepkumar2017forecasting}. Aunque la propuesta original se aplicó principalmente a índices bursátiles (ej. S\&P500, NIFTY) y series de volatilidad diaria, la investigación posterior ha explorado extensivamente el uso de PSO para ajustar parámetros de modelos predictivos en finanzas, mostrando que las metaheurísticas siguen siendo útiles para optimizar arquitecturas y funciones de pérdida en entornos ruidosos y multimodales \citep{pradeepkumar2017forecasting, tissaoui2024pso}. En el ámbito de divisas, trabajos híbridos recientes que emplean PSO para sintonizar modelos de series han mostrado mejoras en precisión a corto plazo, lo que sugiere que la combinación PSO+QRNN es prometedora también para Forex aunque la literatura específica sobre ``PSOQRNN aplicado a pares FX (EUR/USD)'' sigue siendo escasa y dispersa, lo que motiva su evaluación sistemática en este proyecto.
+
+\paragraph{CEEMDAN--LSTM.}
+El uso de técnicas de descomposición de señales como CEEMDAN seguido del ajuste de modelos LSTM ha proliferado en la última década debido a su capacidad para separar componentes por escala (IMFs) y reducir ruido antes de la fase de predicción. Estudios aplicados han reportado ganancias de precisión en la previsión de índices bursátiles y en series de criptomonedas al aplicar CEEMDAN antes de redes profundas \citep{lin2021ceemdanlstm, cao2019financial}. Más recientemente (2021–2024), se publicaron trabajos que aplican variantes CEEMDAN–LSTM y CEEMDAN–RF–LSTM (Incluye un RF - Random Forest para reducir ruído) para el pronóstico de índices (p. ej. S\&P500 y CSI300) y para la estimación de volatilidad de criptomonedas, reportando reducciones significativas en métricas de error frente a LSTM sin descomposición u otros enfoques híbridos \citep{lin2021ceemdanlstm, wang2024ceemdanrf_lstm}. Asimismo, estudios comparativos y revisiones sistemáticas recientes subrayan que los enfoques de descomposición + LSTM son consistentes en mejorar el rendimiento en series no estacionarias y con ruido alto, típicas de mercados intradía y de criptoactivos \citep{aksehir2024review, zhu2024ceemdan_lstm_bn}. Estas evidencias justifican la inclusión de CEEMDAN--LSTM en un marco comparativo amplio que incluya divisas, índices y criptomonedas.
+
+\paragraph{Síntesis.}
+En resumen, la evidencia reciente (2020--2025) apoya la idea de que (i) las metaheurísticas como PSO siguen siendo herramientas útiles para la optimización de parámetros en modelos predictivos financieros y (ii) las estrategias de descomposición previa (CEEMDAN) combinadas con LSTM tienden a mejorar la precisión en índices y criptoactivos. No obstante, la aplicación específica de \emph{PSOQRNN} a series intradía de divisas y criptomonedas está menos documentada en el periodo 2020--2025, lo que valida la motivación del presente estudio para realizar evaluaciones comparativas sistemáticas entre ARCH/GARCH, LSTM, PSOQRNN y CEEMDAN--LSTM sobre distintos activos intradía.
+
+\section[Metodología]{Metodología}
+
+El presente trabajo se enmarca en un enfoque de profundización, cuyo objetivo principal es aplicar y comparar diferentes metodologías de modelamiento de volatilidad en series financieras intradía. La metodología se estructura en las siguientes etapas:
+
+\subsection{Revisión de literatura}
+Se realizará una revisión bibliográfica de los principales enfoques estadísticos y computacionales empleados en la predicción de volatilidad, con énfasis en los modelos ARCH/GARCH, PSOQRNN y CEEMDAN-LSTM. Esta revisión permitirá contextualizar el análisis y fundamentar la selección de métricas de comparación.
+
+\subsection{Selección y preparación de datos}
+Se trabajará con series intradía (series con cortes de 15 minutos) correspondientes a tres tipos de activos financieros:
+\begin{itemize}
+    \item Divisas: USD--EUR
+    \item Índices bursátiles: S\&P500
+    \item Criptomonedas: Bitcoin y Ethereum
+\end{itemize}
+
+Las series se obtendrán de bases de datos financieras de acceso público (p. ej., Yahoo Finance, Investing, Binance), asegurando cobertura temporal suficiente para la aplicación de los modelos. Se realizarán procesos de limpieza, normalización y, cuando sea necesario, descomposición de señales.
+
+\subsection{Implementación de modelos}
+Se implementarán dos enfoques principales:
+\begin{enumerate}
+    \item \textbf{Modelos tradicionales}: ARCH y GARCH en sus versiones básicas.
+    \item \textbf{Modelos de aprendizaje profundo e híbridos}: PSOQRNN y CEEMDAN-LSTM.
+\end{enumerate}
+
+La implementación se realizará en lenguajes de programación estadística como R y Python, empleando librerías especializadas (\texttt{rugarch}, \texttt{statsmodels}, \texttt{keras}, \texttt{pytorch}, entre otras).
+
+\subsection{Criterios de comparación}
+El desempeño de los modelos será evaluado a través de métricas cuantitativas como:
+\begin{itemize}
+    \item Error cuadrático medio (RMSE)
+    \item Error absoluto medio (MAE)
+    \item Estadístico Diebold–Mariano para contrastar diferencias de desempeño
+\end{itemize}
+
+Asimismo, se considerará el análisis cualitativo en términos de facilidad de implementación, tiempos de cómputo y robustez frente a la no estacionariedad de las series.
+
+\subsection{Análisis de resultados}
+Se realizará una comparación sistemática entre modelos y activos, destacando:
+\begin{itemize}
+    \item El modelo con mejor desempeño en cada mercado (divisas, índices, criptomonedas).
+    \item Diferencias entre enfoques tradicionales y modernos.
+    \item Implicaciones prácticas de los hallazgos.
+\end{itemize}
+
+\subsection{Conclusiones y recomendaciones}
+Con base en el análisis comparativo, se presentarán conclusiones orientadas a resaltar las ventajas y limitaciones de cada metodología en contextos intradía, así como recomendaciones para su aplicación práctica en análisis financiero.
+
+% Preámbulo
+% \usepackage{tikz}
+% \usetikzlibrary{arrows.meta, positioning, shapes.geometric}
+% \usepackage{float} % para usar [H]
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  node distance = 5mm and 15mm,
+  box/.style = {draw, rounded corners=4pt, minimum width=38mm, minimum height=10mm, align=center, font=\small},
+  arr/.style = {-{Straight Barb[length=3mm,width=2mm]}, semithick}
+]
+
+% Nodos
+\node[box] (datos) {Datos intradía \\ (USD--EUR, S\&P500, BTC, ETH)};
+\node[box, below=of datos] (prep) {Preprocesamiento \\ Limpieza, normalización, resampling};
+
+\node[box, below left=of prep, xshift=28mm] (garch) {Modelos tradicionales \\ ARCH / GARCH};
+\node[box, below=of prep] (lstm) {Redes recurrentes \\ LSTM / GRU};
+\node[box, below right=of prep, xshift=-28mm] (hybrid) {Modelos híbridos \\ PSOQRNN, CEEMDAN-LSTM};
+
+\node[box, below=5mm of lstm] (metrics) {Métricas \\ RMSE, MAE, Diebold–Mariano, \\ tiempo de cómputo, robustez};
+\node[box, below=of metrics] (analysis) {Análisis \\ Comparación por activo y horizonte};
+\node[box, below=of analysis] (concl) {Conclusiones y recomendaciones \\ Aplicaciones prácticas y limitaciones};
+
+% Flechas
+\draw[arr] (datos) -- (prep);
+
+\draw[arr] (prep.south) |- (garch.north);
+\draw[arr] (prep) -- (lstm);
+\draw[arr] (prep.south) |- (hybrid.north);
+
+\draw[arr] (garch.south) |- (metrics.north);
+\draw[arr] (lstm) -- (metrics);
+\draw[arr] (hybrid.south) |- (metrics.north);
+
+\draw[arr] (metrics) -- (analysis);
+\draw[arr] (analysis) -- (concl);
+
+% Título arriba
+\node[font=\footnotesize, above=6mm of datos] {Ruta metodológica};
+
+\end{tikzpicture}
+\caption{Mapa conceptual de la metodología: desde datos intradía hasta conclusiones.}
+\label{fig:mapa_metodologia}
+\end{figure}
+
+\section[Cronograma]{Cronograma}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|c|c|c|c|c|c|c|c|c|c|}\hline
+	\multirow{2}{*}{\bf Actividad} & \multicolumn {10}{ c|}{{\bf{Meses}}}\\ \cline{2-11}
+	& 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 \\\hline
+
+	Revisión de literatura & x & x & x & x & & & & & & \\\hline
+	Preparación y limpieza de datos & & x & x & & & & & & & \\\hline
+	Implementación de modelos & & & x & x & x & & & & & \\\hline
+	Evaluación y comparación de modelos & & & & x & x & x & & & & \\\hline
+	Análisis y discusión de resultados & & & & & x & x & x & & & \\\hline
+	Conclusiones y recomendaciones & & & & & & x & x & & & \\\hline
+	Redacción del trabajo & x & x & x & x & x & x & x & x & & \\\hline
+	Correcciones finales & & & & & & & & x & x & x \\\hline
+\end{tabular}
+\caption{Cronograma de actividades del trabajo de profundización.}
+\end{table}
+
+%---------------------------------------------------------------------------------
+\section[Compromisos]{Compromisos}
+
+\begin{itemize}
+\item \textbf{Cumplimiento del cronograma:} Seguir las etapas del proyecto según los tiempos establecidos.
+\item \textbf{Integridad en los resultados:} Reportar los hallazgos de forma honesta, sin manipulación de datos.
+\item \textbf{Presentación de resultados:} Los resultados podrán ser socializados en un evento académico de carácter local o nacional, sujeto a la viabilidad institucional, logística y a las condiciones de tiempo y recursos disponibles.
+\end{itemize}
+
+\newpage
+\bibliographystyle{apalike}
+\bibliography{mi_bibliografia}
+
+\end{document}
