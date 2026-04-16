@@ -3,7 +3,9 @@ from finance_modeling.config import ConfigLoader
 
 from finance_modeling.data import RawDataLoader, DataPreprocessor
 
-from finance_modeling.models import GARCHModel
+from finance_modeling.models import ModelFactory
+
+from finance_modeling.evaluation import Metrics, Evaluator
 
 
 def main():
@@ -30,17 +32,19 @@ def main():
 
         logger.info(f"Finished pre processing asset: {asset.symbol}")
 
-        for model in models_config.models:
+        for model_config in models_config.models:
 
-            logger.info(f"Running model: {model.name} on asset: {asset.symbol}")
+            logger.info(f"Running model: {model_config.name} on asset: {asset.symbol}")
 
-            if model.name == "GARCH":
-                garch_model = GARCHModel(model, asset)
-                garch_model.fit(processed_data.train)
-                predictions = garch_model.predict(processed_data.train, processed_data.test)
-                evaluation_result = garch_model.evaluate(processed_data.test, predictions)
+            model = ModelFactory.create_model(model_config.name, model_config, asset)
+            model.fit(processed_data.train)
+            predictions = model.predict(processed_data.train, processed_data.test)
+            evaluation_result = Evaluator.from_timeinput_and_prediction_result(
+                y_true=processed_data,
+                y_pred=predictions
+            )
 
-                logger.info(f"Evaluation results for {model.name} on {asset.symbol}: RMSE={evaluation_result.rmse}, MAE={evaluation_result.mae}")
+            logger.info(f"Evaluation results for {model.name} on {asset.symbol}: RMSE={evaluation_result.rmse}, MAE={evaluation_result.mae}")
 
     logger.info("Experiment runner finished.")
 

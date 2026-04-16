@@ -3,7 +3,7 @@ import pandas as pd
 from .base import BaseVolatilityModel
 
 
-class CEEMDANLSTModel(BaseVolatilityModel):
+class CEEMDANLSTMModel(BaseVolatilityModel):
 
     name = "CEEMDAN-LSTM"
 
@@ -19,8 +19,6 @@ class CEEMDANLSTModel(BaseVolatilityModel):
 
     def get_params(self) -> dict:
         pass
-    
+
     def save(self, path: str) -> None:
         pass
-
-

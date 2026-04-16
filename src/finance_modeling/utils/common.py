@@ -20,3 +20,10 @@ def generate_future_timestamps(last_index, steps, freq):
     freq: frecuencia como string pandas ('D', '15min', etc)
     """
     return pd.date_range(start=last_index, periods=steps+1, freq=freq)[1:]
+
+
+def convert_list_to_series(index, y_pred: list) -> pd.Series:
+        return pd.Series(
+            data=y_pred,
+            index=index
+        )
