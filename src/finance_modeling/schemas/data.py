@@ -35,8 +35,8 @@ class TimeSeriesInput(BaseModel):
 
     metadata: AssetMetadata
     series: pd.Series
-    log_returns: pd.Series | None = None
+    log_returns: pd.Series
     frequency: str = "15min"
-    train: pd.Series | None = None
-    test: pd.Series | None = None
-    split_index: int | None = None
+    train: pd.Series = Field(default_factory=lambda: pd.Series(dtype=float))
+    test: pd.Series = Field(default_factory=lambda: pd.Series(dtype=float))
+    split_index: int = 0
