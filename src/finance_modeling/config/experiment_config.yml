@@ -1,3 +1,4 @@
+- experiment_name: "20260419"
 - name: "GARCH"
   hyperparameters_list:
     - p: 1

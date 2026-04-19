@@ -4,8 +4,18 @@ import pandas as pd
 
 from arch.univariate.mean import HARX
 from .base import BaseVolatilityModel
-from ..schemas import ModelConfig, PredictionResult, AssetMetadata, PredictionRow
-from ..utils import logger
+from ..schemas import (
+    ModelConfig, 
+    PredictionResult, 
+    AssetMetadata, 
+    PredictionRow
+)
+from ..utils import (
+    get_main_root,
+    validate_file_exists,
+    create_experiment_directory,
+    logger
+)
 
 
 class GARCHModel(BaseVolatilityModel):
@@ -69,7 +79,7 @@ class GARCHModel(BaseVolatilityModel):
         forecast = self.model.forecast(start=X.index[-1], horizon=len(y))
         values = (
             forecast.variance.values.flatten()
-        )  # o forecast.variance, según lo que quieras predecir
+        )
         timestamps = y.index
 
         rows = [
@@ -89,11 +99,6 @@ class GARCHModel(BaseVolatilityModel):
             rows=rows,
         )
 
-    def get_params(self) -> ModelConfig:
 
-        return self.config
-
-    def save(self, path: str) -> None:
-        raise NotImplementedError(
-            "The save method must be implemented by the subclass."
-        )
+if __name__ == "__main__":
+    pass
