@@ -4,7 +4,6 @@ import os
 import pandas as pd
 from enum import StrEnum
 from pydantic import BaseModel, ConfigDict, Field
-from finance_modeling.utils import get_main_root
 
 
 class AssetType(StrEnum):

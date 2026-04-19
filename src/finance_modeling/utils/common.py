@@ -27,3 +27,13 @@ def convert_list_to_series(index, y_pred: list) -> pd.Series:
             data=y_pred,
             index=index
         )
+
+
+def create_experiment_directory(output_dir: str, experiment_name: str) -> str:
+
+    path = os.path.join(
+        output_dir,
+        experiment_name
+    )
+    os.makedirs(path, exist_ok=True)
+    return path

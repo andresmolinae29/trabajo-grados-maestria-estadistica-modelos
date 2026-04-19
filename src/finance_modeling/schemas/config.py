@@ -17,5 +17,6 @@ class ModelConfig(BaseModel):
 
 class ExperimentConfig(BaseModel):
     models: list[ModelConfig]
+    experiment_name: str
     train_ratio: float = Field(default=0.8, ge=0.5, le=0.95)
     output_dir: str = Field(default_factory=lambda: os.path.join(get_main_root(), "results", 'models'))

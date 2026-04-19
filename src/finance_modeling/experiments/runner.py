@@ -1,11 +1,9 @@
-from finance_modeling.utils import logger
+from finance_modeling.utils import logger, create_experiment_directory
 from finance_modeling.config import ConfigLoader
 
 from finance_modeling.data import RawDataLoader, DataPreprocessor
-
 from finance_modeling.models import ModelFactory
-
-from finance_modeling.evaluation import Metrics, Evaluator
+from finance_modeling.evaluation import Evaluator
 
 
 def main():
@@ -13,6 +11,8 @@ def main():
 
     models_config = ConfigLoader().load_model_config()
     data_config = ConfigLoader().load_data_config()
+
+    experiment_path = create_experiment_directory(models_config.output_dir, models_config.experiment_name)
 
     for asset in data_config.assets:
         if not asset.active:
@@ -43,6 +43,10 @@ def main():
                 y_true=processed_data,
                 y_pred=predictions
             )
+
+            model.save_model(experiment_path)
+            model.save_results(experiment_path, predictions)
+            model.save_model_hyperparameters(experiment_path)
 
             logger.info(f"Evaluation results for {model.name} on {asset.symbol}: RMSE={evaluation_result.rmse}, MAE={evaluation_result.mae}")
 

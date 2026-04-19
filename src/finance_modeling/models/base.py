@@ -8,7 +8,17 @@ from ..schemas import (
     ModelConfig
 )
 
+from ..utils import (
+    get_main_root,
+    create_experiment_directory
+)
+
+from datetime import datetime
+
 import pandas as pd
+import pickle
+import json
+import os
 
 
 class BaseVolatilityModel(ABC):
@@ -31,7 +41,23 @@ class BaseVolatilityModel(ABC):
         raise NotImplementedError("The predict method must be implemented by the subclass.")
 
     def get_params(self) -> ModelConfig:
-        raise NotImplementedError("The get_params method must be implemented by the subclass.")
+        
+        return self.config
 
-    def save(self, path: str) -> None:
-        raise NotImplementedError("The save method must be implemented by the subclass.")
+    def save_model(self, experiment_path: str) -> None:
+
+        model_file = os.path.join(experiment_path, f"{self.name}.pkl")
+        with open(model_file, "wb") as f:
+            pickle.dump(self, f)
+    
+    def save_results(self, experiment_path: str, results: PredictionResult) -> None:
+
+        file_path = os.path.join(experiment_path, f"{self.name}_results.csv")
+        results_df = pd.DataFrame([vars(results)])
+        results_df.to_csv(file_path, index=False)
+
+    def save_model_hyperparameters(self, experiment_path: str) -> None:
+
+        params_file = os.path.join(experiment_path, f"{self.name}_params.json")
+        with open(params_file, "w") as f:
+            json.dump(self.get_params().model_dump(), f, indent=4)

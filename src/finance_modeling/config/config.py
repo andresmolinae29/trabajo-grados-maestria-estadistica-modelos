@@ -21,13 +21,13 @@ class ConfigLoader:
             config = yaml.safe_load(file)
         return config
 
-    # @cached_property
     def load_model_config(self) -> ExperimentConfig:
         file_path = os.path.join(get_main_root(), "config", MODEL_CONFIG)
         config = self.load_config(file_path)
-        return ExperimentConfig(models=[ModelConfig(**model) for model in config])
+        return ExperimentConfig(
+            experiment_name=config[0].get("experiment_name", "default_experiment"),
+            models=[ModelConfig(**model) for model in config[1:]])
 
-    # @cached_property
     def load_data_config(self) -> ListOfAssets:
         file_path = os.path.join(get_main_root(), "config", DATA_CONFIG)
         config = self.load_config(file_path)
