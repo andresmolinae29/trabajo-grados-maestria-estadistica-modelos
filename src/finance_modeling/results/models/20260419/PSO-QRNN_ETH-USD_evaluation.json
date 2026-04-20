@@ -1,0 +1,7 @@
+{
+    "model_name": "PSO-QRNN",
+    "asset": "ETH-USD",
+    "rmse": 0.7013972113225867,
+    "mae": 0.45074288289679565,
+    "versus_baseline": true
+}

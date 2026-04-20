@@ -1,0 +1,13 @@
+{
+    "baseline_model": "GARCH",
+    "challenger_model": "CEEMDAN-LSTM",
+    "asset": "ETH-USD",
+    "rmse_baseline": 19.395485235046763,
+    "rmse_challenger": 1.7202234495627722,
+    "rmse_diff": -17.67526178548399,
+    "mae_baseline": 16.928021628371695,
+    "mae_challenger": 1.4662897888235749,
+    "mae_diff": -15.46173183954812,
+    "dm_statistic": 38.321628986505594,
+    "dm_p_value": 9.043413021206174e-208
+}

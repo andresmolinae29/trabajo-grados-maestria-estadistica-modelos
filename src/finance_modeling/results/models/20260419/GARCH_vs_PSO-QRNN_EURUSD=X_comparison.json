@@ -1,0 +1,13 @@
+{
+    "baseline_model": "GARCH",
+    "challenger_model": "PSO-QRNN",
+    "asset": "EURUSD=X",
+    "rmse_baseline": 3.3024069971400047,
+    "rmse_challenger": 0.8296026833668987,
+    "rmse_diff": -2.472804313773106,
+    "mae_baseline": 3.165948959260033,
+    "mae_challenger": 0.5726260816459388,
+    "mae_diff": -2.593322877614094,
+    "dm_statistic": 49.19201216134348,
+    "dm_p_value": 6.0268191043672415e-245
+}

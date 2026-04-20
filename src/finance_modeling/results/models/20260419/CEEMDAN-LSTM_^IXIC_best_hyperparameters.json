@@ -1,0 +1,10 @@
+{
+    "window_size": 10,
+    "hidden_size": 32,
+    "num_layers": 1,
+    "dropout": 0.0,
+    "learning_rate": 0.001,
+    "batch_size": 16,
+    "epochs": 30,
+    "validation_size": 20
+}

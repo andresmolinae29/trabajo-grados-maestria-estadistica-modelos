@@ -1,0 +1,7 @@
+{
+    "model_name": "GARCH",
+    "asset": "^IXIC",
+    "rmse": 3.7456703390974666,
+    "mae": 3.505459261991508,
+    "versus_baseline": true
+}

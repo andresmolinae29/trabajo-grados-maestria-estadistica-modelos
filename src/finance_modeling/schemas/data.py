@@ -10,6 +10,7 @@ class AssetType(StrEnum):
     FOREX = "forex"
     INDEX = "index"
     CRYPTO = "crypto"
+    COMMODITY = "commodity"
 
 
 class AssetMetadata(BaseModel):
