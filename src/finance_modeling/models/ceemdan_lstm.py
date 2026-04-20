@@ -6,7 +6,7 @@ from PyEMD import CEEMDAN
 from torch import nn
 from torch.utils.data import DataLoader, TensorDataset
 
-from .base import BaseVolatilityModel
+from .base import BaseVolatilityModel, _Regressor
 
 from ..schemas import (
     ModelConfig,
@@ -15,24 +15,6 @@ from ..schemas import (
     PredictionRow,
 )
 from ..utils import logger
-
-
-class _LSTMRegressor(nn.Module):
-    def __init__(self, input_size: int, hidden_size: int, num_layers: int, dropout: float):
-        super().__init__()
-        effective_dropout = dropout if num_layers > 1 else 0.0
-        self.lstm = nn.LSTM(
-            input_size=input_size,
-            hidden_size=hidden_size,
-            num_layers=num_layers,
-            dropout=effective_dropout,
-            batch_first=True,
-        )
-        self.output = nn.Linear(hidden_size, 1)
-
-    def forward(self, features: torch.Tensor) -> torch.Tensor:
-        sequence_output, _ = self.lstm(features)
-        return self.output(sequence_output[:, -1, :])
 
 
 class CEEMDANLSTMModel(BaseVolatilityModel):
@@ -44,16 +26,17 @@ class CEEMDANLSTMModel(BaseVolatilityModel):
         super().__init__(config, asset_metadata)
 
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.models: list[_Regressor] = []
+        self.train_imfs: list[np.ndarray] = []
+        self.best_hyperparameters: dict = {}
+        self.window_size: int = 0
+
         logger.info(
             "Using device for CEEMDAN-LSTM: %s (torch=%s, cuda_available=%s)",
             self.device,
             torch.__version__,
             torch.cuda.is_available(),
         )
-        self.models: list[_LSTMRegressor] = []
-        self.train_imfs: list[np.ndarray] = []
-        self.best_hyperparameters: dict = {}
-        self.window_size: int = 0
 
     def __set_random_seed(self) -> None:
 
@@ -96,13 +79,14 @@ class CEEMDANLSTMModel(BaseVolatilityModel):
 
         return np.asarray(features, dtype=np.float32), np.asarray(targets, dtype=np.float32)
 
-    def __build_model(self, hyperparameters: dict) -> _LSTMRegressor:
+    def __build_model(self, hyperparameters: dict) -> _Regressor:
 
-        return _LSTMRegressor(
+        return _Regressor(
             input_size=1,
             hidden_size=int(hyperparameters.get("hidden_size", 32)),
             num_layers=int(hyperparameters.get("num_layers", 1)),
             dropout=float(hyperparameters.get("dropout", 0.0)),
+            output_size=1,
         ).to(self.device)
 
     def __train_single_imf_model(
@@ -111,7 +95,7 @@ class CEEMDANLSTMModel(BaseVolatilityModel):
         hyperparameters: dict,
         imf_index: int | None = None,
         total_imfs: int | None = None,
-    ) -> _LSTMRegressor:
+    ) -> _Regressor:
 
         window_size = self.__resolve_window_size(len(imf), hyperparameters)
         features, targets = self.__make_windows(imf, window_size)
@@ -176,7 +160,7 @@ class CEEMDANLSTMModel(BaseVolatilityModel):
 
         return model
 
-    def __forecast_single_imf(self, model: _LSTMRegressor, imf: np.ndarray, horizon: int, window_size: int) -> np.ndarray:
+    def __forecast_single_imf(self, model: _Regressor, imf: np.ndarray, horizon: int, window_size: int) -> np.ndarray:
 
         history = list(np.asarray(imf, dtype=np.float32))
         forecasts = []

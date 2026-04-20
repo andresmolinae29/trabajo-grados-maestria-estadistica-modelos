@@ -4,3 +4,27 @@
   asset_type: "crypto"
   description: "Bitcoin historical price data"
   column_to_use: "close"
+- symbol: "ETH-USD"
+  active: true
+  data_folder: "ethereum"
+  asset_type: "crypto"
+  description: "Ethereum historical price data"
+  column_to_use: "close"
+- symbol: "EUR-USD"
+  active: true
+  data_folder: ""
+  asset_type: "forex"
+  description: "Euro historical price data"
+  column_to_use: "close"
+- symbol: "SP500"
+  active: true
+  data_folder: "sp500"
+  asset_type: "index"
+  description: "S&P 500 historical price data"
+  column_to_use: "close"
+- symbol: "NASDAQ"
+  active: true
+  data_folder: "nasdaq"
+  asset_type: "index"
+  description: "NASDAQ historical price data"
+  column_to_use: "close"
