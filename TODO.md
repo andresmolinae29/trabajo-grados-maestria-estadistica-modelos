@@ -1,11 +1,17 @@
 # TODO - Trabajo de Grado: Modelos de Volatilidad Financiera
 
+## Avance estimado
+
+- Avance global estimado del proyecto: `86%`
+- Avance tecnico-operativo estimado: `91%`
+- Avance de cierre metodologico y reproducibilidad: `80%`
+
 ## Estado actual real
 
 - [x] Infraestructura modular separada en `config`, `data`, `models`, `evaluation`, `experiments`, `schemas` y `utils`.
 - [x] Pipeline minimo operativo: `load -> preprocess -> fit -> predict -> evaluate -> persist`.
-- [ ] Cobertura experimental todavia incompleta: la configuracion de datos ya incluye varios activos, pero sigue inconsistente con algunos archivos reales y aun no incluye Gold.
-- [ ] Cierre metodologico todavia incompleto por README vacio, cobertura parcial de codigo y falta de corrida comparativa oficial con artefactos finales para varios activos.
+- [x] Cobertura experimental ya validada sobre todos los activos configurados y para cada modelo del experimento.
+- [ ] Cierre metodologico todavia incompleto por cobertura parcial de codigo, falta de tablas finales consolidadas y documentacion de analisis/resultados para la tesis.
 
 ## Corte tecnico (2026-04-19)
 
@@ -19,7 +25,8 @@
 - [x] Cobertura de tests ya iniciada y consolidada con suite `pytest` operativa.
 - [x] Exportacion tabular de `PredictionResult` corregida a CSV por fila.
 - [x] Logging de dispositivo CPU/GPU agregado en modelos PyTorch al iniciar.
-- [ ] `README.md` sigue vacio y sin instrucciones operativas.
+- [x] `README.md` ya documenta instalacion, ejecucion, artefactos, tests y cobertura.
+- [x] Corrida oficial completa ya ejecutada para todos los activos configurados y para cada modelo del experimento.
 - [ ] Cobertura profunda aun pendiente en internals costosos de `CEEMDANLSTMModel` y `PSOQRNNModel`.
 
 ## Cobertura de codigo (2026-04-19)
@@ -43,31 +50,31 @@
 
 ## Fase 2: Completar cobertura de configuracion experimental
 
-- [ ] Agregar a `data_loading_config.yml` el activo pendiente ya presente en `data/files/`: Gold.
-- [ ] Confirmar para cada activo la coherencia entre `symbol`, `data_folder`, archivo fisico y `column_to_use`.
-- [ ] Corregir especificamente la configuracion de EUR/USD, S&P500 y NASDAQ para alinear `symbol` y ruta real con los archivos curados existentes.
-- [ ] Revisar si la frecuencia fija `15min` del loader aplica realmente a todos los datasets cargados.
+- [x] Agregar a `data_loading_config.yml` el activo pendiente ya presente en `data/files/`: Gold.
+- [x] Confirmar para cada activo configurado la coherencia entre `symbol`, `data_folder`, archivo fisico y `column_to_use` para BTC, ETH, EURUSD=X, ^GSPC, ^IXIC y GC=F.
+- [x] Corregir especificamente la configuracion de EUR/USD, S&P500 y NASDAQ para alinear `symbol` y ruta real con los archivos curados existentes.
+- [x] Revisar si la frecuencia fija `15min` del loader aplica realmente a todos los datasets cargados.
 - [x] Estandarizar nombres de modelos en configuracion segun las keys reales del registry.
-- [ ] Decidir si la activacion de modelos en `experiment_config.yml` debe quedar limitada a baseline + un challenger por corrida para controlar tiempo de ejecucion.
+- [x] Decidir si la activacion de modelos en `experiment_config.yml` debe quedar limitada a baseline + un challenger por corrida para controlar tiempo de ejecucion. No
 
 ## Fase 3: Cerrar el primer challenger utilizable
 
 - [x] Implementar un primer challenger funcional: `CEEMDANLSTMModel`.
 - [x] Implementar un segundo challenger funcional: `PSOQRNNModel`.
-- [ ] Validar estabilidad numerica y costo computacional de `CEEMDANLSTMModel` sobre al menos un activo completo.
+- [x] Validar estabilidad numerica y costo computacional de `CEEMDANLSTMModel` sobre al menos un activo completo.
 - [ ] Revisar la estrategia de validacion interna de `CEEMDANLSTMModel` para evitar fugas o sobrecostos innecesarios al descomponer y entrenar por cada combinacion.
 - [x] Corregir o confirmar la exportacion de artefactos del challenger para que queden comparables con el baseline.
-- [ ] Validar estabilidad numerica y costo computacional de `PSOQRNNModel` sobre al menos un activo completo.
+- [x] Validar estabilidad numerica y costo computacional de `PSOQRNNModel` sobre al menos un activo completo.
 - [ ] Profundizar tests de seleccion PSO, scoring interno y forecast autoregresivo de `PSOQRNNModel`.
 
 ## Fase 4: Ejecutar comparacion comparativa real
 
 - [x] Consolidar `Evaluator` y `ModelComparator` como capa oficial de evaluacion.
 - [x] Calcular RMSE y MAE de forma uniforme para todos los modelos implementados.
-- [ ] Ejecutar baseline vs `CEEMDAN-LSTM` sobre el mismo activo y horizonte para producir un `ComparisonResult` real.
+- [x] Ejecutar baseline vs `CEEMDAN-LSTM` sobre el mismo activo y horizonte para producir un `ComparisonResult` real.
 - [x] Persistir resultados comparativos por activo/modelo y no solo evaluaciones individuales.
-- [ ] Definir formato de salida para tablas comparativas finales por activo y por modelo.
-- [ ] Usar Diebold-Mariano solo cuando las predicciones baseline/challenger esten perfectamente alineadas en timestamps y horizonte.
+- [x] Definir formato de salida base para artefactos comparativos por activo y por modelo.
+- [x] Usar Diebold-Mariano solo cuando las predicciones baseline/challenger esten perfectamente alineadas en timestamps y horizonte. Esto sucede porque siempre se compara el mismo dataset con las mismas particiones.
 
 ## Fase 5: Reproducibilidad y calidad minima
 
@@ -78,14 +85,14 @@
 - [ ] Agregar tests especificos para `ModelFactory` y validar errores de registry.
 - [ ] Subir la cobertura global por encima de 70% con foco en `model_factory`, `PSOQRNNModel` y `CEEMDANLSTMModel`.
 - [ ] Revisar logging y manejo de errores para fallos de carga, fitting y prediccion.
-- [ ] Documentar en `README.md` como instalar dependencias, correr el pipeline y donde quedan los artefactos.
+- [x] Documentar en `README.md` como instalar dependencias, correr el pipeline y donde quedan los artefactos.
 
 ## Fase 6: Expansion metodologica
 
-- [ ] Estabilizar y comparar `PSOQRNNModel` despues de tener baseline y `CEEMDANLSTMModel` validados en corridas oficiales.
+- [x] Estabilizar y comparar `PSOQRNNModel` despues de tener baseline y `CEEMDANLSTMModel` validados en corridas oficiales.
 - [ ] Evaluar si conviene unificar configuracion de experimento y datos en un solo archivo mas adelante.
 - [ ] Organizar resultados finales para analisis, tablas y redaccion del documento de maestria.
-- [ ] Preparar una matriz final de comparacion por modelo, activo y metrica.
+- [ ] Preparar una matriz final consolidada de comparacion por modelo, activo y metrica para reporte final.
 
 ## Riesgos y brechas visibles
 
