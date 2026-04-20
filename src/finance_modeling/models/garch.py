@@ -5,15 +5,12 @@ import pandas as pd
 from arch.univariate.mean import HARX
 from .base import BaseVolatilityModel
 from ..schemas import (
-    ModelConfig, 
-    PredictionResult, 
-    AssetMetadata, 
+    ModelConfig,
+    PredictionResult,
+    AssetMetadata,
     PredictionRow
 )
 from ..utils import (
-    get_main_root,
-    validate_file_exists,
-    create_experiment_directory,
     logger
 )
 
@@ -25,6 +22,8 @@ class GARCHModel(BaseVolatilityModel):
     def __init__(self, config: ModelConfig, asset_metadata: AssetMetadata):
 
         super().__init__(config, asset_metadata)
+
+        self.best_hyperparameters: dict = {}
 
     def __set_model(self, X: pd.Series, hyperparameters: dict) -> HARX:
 
@@ -50,6 +49,7 @@ class GARCHModel(BaseVolatilityModel):
 
         for hyperparameters in self.config.hyperparameters_list:
             try:
+                logger.info(f"Evaluating GARCH hyperparameters: {hyperparameters}")
                 model = self.__set_model(X, hyperparameters)
                 fitted_model = model.fit(disp="off")
                 aic = fitted_model.aic
@@ -67,7 +67,9 @@ class GARCHModel(BaseVolatilityModel):
     def fit(self, X: pd.Series, y: pd.Series | None = None) -> None:
 
         best_hyperparameters = self.__select_hyperparameters(X)
-        model = self.__set_model(X, best_hyperparameters)
+        logger.info(f"Selected GARCH hyperparameters: {best_hyperparameters}")
+        self.best_hyperparameters = best_hyperparameters
+        model = self.__set_model(X, self.best_hyperparameters)
         self.model = model.fit(disp="off")
         self.is_fitted = True
 

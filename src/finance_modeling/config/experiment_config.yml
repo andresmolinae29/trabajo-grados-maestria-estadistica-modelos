@@ -3,7 +3,61 @@
   hyperparameters_list:
     - p: 1
       q: 1
+      dist: normal
+    - p: 1
+      q: 1
+      dist: t
+    - p: 1
+      q: 2
+      dist: t
+    - p: 2
+      q: 1
+      dist: t
     - p: 2
       q: 2
-    - p: 3
-      q: 3
+      dist: t
+    - p: 1
+      o: 1
+      q: 1
+      power: 2.0
+      dist: t
+    - p: 1
+      o: 1
+      q: 1
+      power: 2.0
+      dist: skewt
+
+- name: "CEEMDAN_LSTM"
+  hyperparameters_list:
+    - window_size: 10
+      hidden_size: 32
+      num_layers: 1
+      dropout: 0.0
+      learning_rate: 0.001
+      batch_size: 16
+      epochs: 30
+      validation_size: 20
+    - window_size: 20
+      hidden_size: 32
+      num_layers: 1
+      dropout: 0.0
+      learning_rate: 0.001
+      batch_size: 16
+      epochs: 35
+      validation_size: 20
+    - window_size: 20
+      hidden_size: 64
+      num_layers: 2
+      dropout: 0.1
+      learning_rate: 0.0005
+      batch_size: 32
+      epochs: 40
+      validation_size: 20
+    - window_size: 30
+      hidden_size: 64
+      num_layers: 2
+      dropout: 0.1
+      learning_rate: 0.0005
+      batch_size: 32
+      epochs: 45
+      validation_size: 20
