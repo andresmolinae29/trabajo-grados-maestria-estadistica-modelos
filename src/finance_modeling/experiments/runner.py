@@ -46,7 +46,9 @@ def main():
 
             model.save_model(experiment_path)
             model.save_results(experiment_path, predictions)
-            model.save_model_hyperparameters(experiment_path)
+            model.save_model_best_hyperparameters(experiment_path)
+
+            Evaluator().save_evaluation_results(experiment_path, evaluation_result)
 
             logger.info(f"Evaluation results for {model.name} on {asset.symbol}: RMSE={evaluation_result.rmse}, MAE={evaluation_result.mae}")
 

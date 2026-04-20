@@ -1,4 +1,6 @@
+import json
 import pandas as pd
+import os
 
 from .metrics import Metrics
 from ..schemas import EvaluationResult, PredictionResult, TimeSeriesInput
@@ -32,3 +34,18 @@ class Evaluator:
             y_true=y_true.test,
             y_pred=y_pred_series,
         )
+
+    @staticmethod
+    def save_evaluation_results(
+        experiment_path: str, evaluation_result: EvaluationResult
+    ) -> None:
+
+        data_dict = evaluation_result.model_dump()
+        with open(
+            os.path.join(
+                experiment_path,
+                f"{evaluation_result.model_name}_{evaluation_result.asset}_evaluation.json",
+            ),
+            "w",
+        ) as f:
+            json.dump(data_dict, f, indent=4)
