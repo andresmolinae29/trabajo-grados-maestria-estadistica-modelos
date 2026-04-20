@@ -61,3 +61,46 @@
       batch_size: 32
       epochs: 45
       validation_size: 20
+
+- name: "PSOQRNN"
+  hyperparameters_list:
+    - window_size: 10
+      hidden_size: 32
+      num_layers: 1
+      dropout: 0.0
+      learning_rate: 0.001
+      batch_size: 16
+      epochs: 30
+      validation_size: 20
+      pso_particles: 6
+      pso_iterations: 5
+    - window_size: 20
+      hidden_size: 32
+      num_layers: 1
+      dropout: 0.0
+      learning_rate: 0.001
+      batch_size: 16
+      epochs: 35
+      validation_size: 20
+      pso_particles: 6
+      pso_iterations: 5
+    - window_size: 20
+      hidden_size: 64
+      num_layers: 2
+      dropout: 0.1
+      learning_rate: 0.0005
+      batch_size: 32
+      epochs: 40
+      validation_size: 20
+      pso_particles: 6
+      pso_iterations: 5
+    - window_size: 30
+      hidden_size: 64
+      num_layers: 2
+      dropout: 0.1
+      learning_rate: 0.0005
+      batch_size: 32
+      epochs: 45
+      validation_size: 20
+      pso_particles: 6
+      pso_iterations: 5

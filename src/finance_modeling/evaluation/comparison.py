@@ -1,3 +1,6 @@
+import json
+import os
+
 import pandas as pd
 
 from .metrics import Metrics
@@ -38,6 +41,17 @@ class ModelComparator:
             dm_statistic=dm_statistic,
             dm_p_value=dm_p_value
         )
+
+    @staticmethod
+    def save_comparison_results(experiment_path: str, comparison_result: ComparisonResult) -> None:
+
+        file_name = (
+            f"{comparison_result.baseline_model}_vs_"
+            f"{comparison_result.challenger_model}_"
+            f"{comparison_result.asset}_comparison.json"
+        )
+        with open(os.path.join(experiment_path, file_name), "w") as file_pointer:
+            json.dump(comparison_result.model_dump(), file_pointer, indent=4)
 
     @classmethod
     def compare_from_timeinput_and_prediction_results(

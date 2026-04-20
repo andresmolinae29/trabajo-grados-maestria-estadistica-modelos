@@ -9,5 +9,6 @@ from .common import (
 )
 
 from .exceptions import (
-    ModelNotFitException
+    ModelNotFitException,
+    DataLoaderException
 )

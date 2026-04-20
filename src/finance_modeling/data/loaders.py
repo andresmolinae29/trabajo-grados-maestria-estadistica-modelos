@@ -2,7 +2,11 @@ import pandas as pd
 import os
 
 from ..schemas import AssetMetadata, TimeSeriesInput
-from ..utils import get_main_root, validate_file_exists
+from ..utils import (
+    DataLoaderException,
+    get_main_root,
+    validate_file_exists
+)
 
 
 class RawDataLoader:
@@ -20,7 +24,11 @@ class RawDataLoader:
     def load_data(self) -> TimeSeriesInput:
 
         path = self._set_data_path()
-        validate_file_exists(path)
+
+        try:
+            validate_file_exists(path)
+        except FileNotFoundError as e:
+            raise DataLoaderException(f"Error loading data: {e}")
 
         df = pd.read_csv(
             path,
