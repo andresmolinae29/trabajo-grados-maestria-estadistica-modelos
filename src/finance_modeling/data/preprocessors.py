@@ -6,37 +6,37 @@ from ..schemas import (
 
 
 class DataPreprocessor:
-    def __init__(self, config):
-        self.config = config
+    def __init__(self, data: TimeSeriesInput):
+        self.data = data
 
-    def preprocess(self, data: TimeSeriesInput, handle_missing: bool = True) -> TimeSeriesInput:
+    def _preprocess(self, handle_missing: bool = True) -> None:
 
         if handle_missing:
-            data.series.ffill(inplace=True)
-            data.series.bfill(inplace=True)
+            self.data.series.ffill(inplace=True)
+            self.data.series.bfill(inplace=True)
 
-        data.series = data.series.astype(float)
+        self.data.series = self.data.series.astype(float)
 
-        return data
+    def _returns_series(self) -> None:
+        self.data.returns = (
+            (self.data.series - self.data.series.shift(1)) / self.data.series).dropna()
 
-    def compute_log_returns(self, data: TimeSeriesInput) -> TimeSeriesInput:
-        data.log_returns = data.series.pct_change().apply(lambda x: np.log(1 + x)).dropna()
-        return data
+    def _innovations_series(self,) -> None:
+        if self.data.returns is None:
+            raise ValueError("Returns series must be computed before computing innovations.")
+        self.data.innovations = self.data.returns - self.data.returns.mean()
 
-    def normalize(self, data: TimeSeriesInput) -> TimeSeriesInput:
+    def _volatility_series(self, omega: int = 252) -> None:
+        if self.data.returns is None:
+            raise ValueError("Returns series must be computed before computing volatility.")
+        self.data.volatility_series = (
+            self.data.returns.rolling(window=omega).std(ddof=1) * np.sqrt(252)
+            ).iloc[omega - 1 : -1]
 
-        if data.log_returns is None:
-            raise ValueError("Log returns must be computed before normalization.")
-        data.log_returns = (data.log_returns - data.log_returns.mean()) / data.log_returns.std()
-        return data
+    def pipeline(self) -> TimeSeriesInput:
+        self._preprocess()
+        self._returns_series()
+        self._innovations_series()
+        self._volatility_series()
 
-    def split_data(self, data: TimeSeriesInput, train_ratio: float = 0.8) -> TimeSeriesInput:
-
-        if data.log_returns is None:
-            raise ValueError("Log returns must be computed before splitting the data.")
-
-        split_index = int(len(data.log_returns) * train_ratio)
-        data.train = data.log_returns.iloc[:split_index]
-        data.test = data.log_returns.iloc[split_index:]
-        data.split_index = split_index
-        return data
+        return self.data

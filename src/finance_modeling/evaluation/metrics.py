@@ -2,8 +2,6 @@ import pandas as pd
 
 from dieboldmariano import dm_test
 
-from ..utils import logger
-
 
 class Metrics:
 

@@ -5,6 +5,7 @@ from types import SimpleNamespace
 import numpy as np
 import pandas as pd
 import torch
+from torch.nn.utils import parameters_to_vector
 from torch.utils.data import TensorDataset
 
 import pytest
@@ -99,7 +100,7 @@ def test_predict_maps_forecast_matrix_to_prediction_result(monkeypatch: pytest.M
     monkeypatch.setattr(
         model,
         "_PSOQRNNModel__forecast_quantiles",
-        lambda X, horizon: np.asarray(
+        lambda X, y: np.asarray(
             [
                 [0.05, 0.10, 0.15],
                 [0.15, 0.20, 0.25],
@@ -115,6 +116,59 @@ def test_predict_maps_forecast_matrix_to_prediction_result(monkeypatch: pytest.M
     assert prediction.asset == "BTC-USD"
     assert prediction.horizon == 2
     assert [row.timestamp for row in prediction.rows] == list(test.index)
-    assert [row.predicted_volatility for row in prediction.rows] == pytest.approx([0.10, 0.20])
+    assert [row.predicted_value for row in prediction.rows] == pytest.approx([0.10, 0.20])
     assert [row.lower_ci for row in prediction.rows] == pytest.approx([0.05, 0.15])
     assert [row.upper_ci for row in prediction.rows] == pytest.approx([0.15, 0.25])
+
+
+def test_train_model_uses_pso_instead_of_adam_or_backward(monkeypatch: pytest.MonkeyPatch) -> None:
+    model = make_model()
+    model.quantiles = [0.1, 0.5, 0.9]
+    hyperparameters = {
+        "window_size": 2,
+        "hidden_size": 2,
+        "num_layers": 1,
+        "quantiles": [0.1, 0.5, 0.9],
+        "pso_particles": 1,
+        "pso_iterations": 1,
+    }
+    dataset = TensorDataset(
+        torch.zeros((2, 2, 1), dtype=torch.float32),
+        torch.zeros((2, 1), dtype=torch.float32),
+    )
+    evaluated_positions: list[np.ndarray] = []
+    loaded_positions: list[np.ndarray] = []
+    original_load_particle_weights = model._PSOQRNNModel__load_particle_weights
+
+    monkeypatch.setattr(
+        "torch.optim.Adam",
+        lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("Adam should not be used")),
+    )
+    monkeypatch.setattr(
+        torch.Tensor,
+        "backward",
+        lambda self, *args, **kwargs: (_ for _ in ()).throw(AssertionError("backward should not be used")),
+    )
+    monkeypatch.setattr(
+        model,
+        "_PSOQRNNModel__evaluate_particle_loss",
+        lambda trained_model, features, targets, particle_position: evaluated_positions.append(particle_position.copy()) or float(np.mean(particle_position ** 2)),
+    )
+    monkeypatch.setattr(
+        model,
+        "_PSOQRNNModel__load_particle_weights",
+        lambda trained_model, particle_position: loaded_positions.append(particle_position.copy()) or original_load_particle_weights(trained_model, particle_position),
+    )
+
+    trained_model = model._PSOQRNNModel__train_model(
+        dataset,
+        hyperparameters,
+    )
+
+    learned_position = parameters_to_vector(trained_model.parameters()).detach().cpu().numpy()
+    scored_positions = [float(np.mean(position ** 2)) for position in evaluated_positions]
+    best_index = min(range(len(scored_positions)), key=lambda index: scored_positions[index])
+    assert learned_position.shape == evaluated_positions[0].shape
+    assert len(evaluated_positions) >= 2
+    assert np.allclose(loaded_positions[-1], evaluated_positions[best_index])
+    assert np.allclose(learned_position, evaluated_positions[best_index])

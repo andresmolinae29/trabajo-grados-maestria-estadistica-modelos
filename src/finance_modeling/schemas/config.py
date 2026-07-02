@@ -6,7 +6,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from ..utils import get_main_root
+from finance_modeling.utils.common import get_main_root
 
 
 class ModelConfig(BaseModel):

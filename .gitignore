@@ -216,3 +216,5 @@ __marimo__/
 .streamlit/secrets.toml
 
 src/finance_modeling/logs/*
+
+test*.ipynb

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import numpy as np
 import pandas as pd
+import pytest
 
 from finance_modeling.experiments import runner
 from finance_modeling.schemas import ComparisonResult, EvaluationResult, ExperimentConfig, ListOfAssets, ModelConfig, PredictionResult, PredictionRow, TimeSeriesInput
@@ -20,13 +22,29 @@ def make_asset(active: bool = True) -> AssetMetadata:
 
 def make_processed_data(asset: AssetMetadata) -> TimeSeriesInput:
     index = pd.date_range("2026-01-01", periods=4, freq="15min")
+    vol_index = index[1:]
     return TimeSeriesInput(
         metadata=asset,
         series=pd.Series([100.0, 101.0, 102.0, 103.0], index=index),
-        log_returns=pd.Series([0.1, 0.2, 0.3], index=index[1:]),
+        log_returns=pd.Series([0.1, 0.2, 0.3], index=vol_index),
+        raw_log_returns=pd.Series([0.01, 0.02, 0.03], index=vol_index),
         train=pd.Series([0.1, 0.2], index=index[1:3]),
         test=pd.Series([0.3], index=index[3:4]),
+        train_raw=pd.Series([0.01, 0.02], index=index[1:3]),
+        test_raw=pd.Series([0.03], index=index[3:4]),
+        test_prices=pd.Series([103.0], index=index[3:4]),
+        normalization_mean=0.0,
+        normalization_std=0.1,
+        last_train_price=102.0,
         split_index=2,
+        volatility_raw=pd.Series([0.0001, 0.0004, 0.0009], index=vol_index),
+        train_volatility_raw=pd.Series([0.0001, 0.0004], index=index[1:3]),
+        test_volatility_raw=pd.Series([0.0009], index=index[3:4]),
+        volatility_normalized=pd.Series([0.5, 0.6, 0.7], index=vol_index),
+        train_volatility=pd.Series([0.5, 0.6], index=index[1:3]),
+        test_volatility=pd.Series([0.7], index=index[3:4]),
+        volatility_min=0.0001,
+        volatility_max=0.0009,
     )
 
 
@@ -37,7 +55,7 @@ def make_prediction(model_name: str, asset_symbol: str, values: list[float]) -> 
         asset=asset_symbol,
         horizon=len(values),
         rows=[
-            PredictionRow(timestamp=timestamp, predicted_volatility=value)
+            PredictionRow(timestamp=timestamp, predicted_value=value)
             for timestamp, value in zip(index, values)
         ],
     )
@@ -87,6 +105,10 @@ class FakePreprocessor:
         self.call_log.append(f"split_data:{train_ratio}")
         return data
 
+    def compute_volatility_target(self, data: TimeSeriesInput) -> TimeSeriesInput:
+        self.call_log.append("compute_volatility_target")
+        return data
+
 
 class FakeModel:
     def __init__(self, name: str, predictions: PredictionResult, call_log: list[str]):
@@ -109,6 +131,59 @@ class FakeModel:
 
     def save_model_best_hyperparameters(self, experiment_path: str) -> None:
         self.call_log.append(f"save_hparams:{self.name}:{experiment_path}")
+
+
+def test_enrich_prediction_result_adds_volatility_and_actual_values() -> None:
+    asset = make_asset()
+    processed_data = make_processed_data(asset)
+    prediction = PredictionResult(
+        model_name="PSO-QRNN",
+        asset=asset.symbol,
+        horizon=1,
+        rows=[
+            PredictionRow(
+                timestamp=processed_data.test_volatility.index[0],
+                predicted_value=0.4,
+            )
+        ],
+    )
+
+    enriched = runner.enrich_prediction_result(processed_data, prediction)
+
+    assert enriched.rows[0].predicted_volatility_normalized == pytest.approx(0.4)
+    assert enriched.rows[0].predicted_volatility == pytest.approx(0.00042)
+    assert enriched.rows[0].actual_volatility_normalized == pytest.approx(0.7)
+    assert enriched.rows[0].actual_volatility == pytest.approx(0.0009)
+    assert enriched.rows[0].actual_return == pytest.approx(0.03)
+    assert enriched.rows[0].actual_price == pytest.approx(103.0)
+    # return-based enrichment is no longer populated
+    assert enriched.rows[0].predicted_normalized_return is None
+    assert enriched.rows[0].predicted_return is None
+    assert enriched.rows[0].predicted_price is None
+
+
+def test_enrich_prediction_result_clamps_predictions_to_non_negative_volatility() -> None:
+    asset = make_asset()
+    processed_data = make_processed_data(asset)
+    prediction = PredictionResult(
+        model_name="PSO-QRNN",
+        asset=asset.symbol,
+        horizon=1,
+        rows=[
+            PredictionRow(
+                timestamp=processed_data.test_volatility.index[0],
+                predicted_value=-2.0,
+                lower_ci=-3.0,
+                upper_ci=-1.0,
+            )
+        ],
+    )
+
+    enriched = runner.enrich_prediction_result(processed_data, prediction)
+
+    assert enriched.rows[0].predicted_volatility == pytest.approx(0.0)
+    assert enriched.rows[0].lower_ci == pytest.approx(0.0)
+    assert enriched.rows[0].upper_ci == pytest.approx(0.0)
 
 
 def test_runner_main_orchestrates_models_and_comparison(monkeypatch, tmp_path) -> None:
@@ -172,7 +247,7 @@ def test_runner_main_orchestrates_models_and_comparison(monkeypatch, tmp_path) -
 
     runner.main()
 
-    assert call_log[:4] == ["preprocess", "compute_log_returns", "normalize", "split_data:0.8"]
+    assert call_log[:5] == ["preprocess", "compute_log_returns", "split_data:0.8", "normalize", "compute_volatility_target"]
     assert "fit:GARCH:2" in call_log
     assert "predict:GARCH:2:1" in call_log
     assert "fit:PSO-QRNN:2" in call_log

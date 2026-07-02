@@ -23,15 +23,24 @@ class Evaluator:
         cls, y_true: TimeSeriesInput, y_pred: PredictionResult
     ) -> EvaluationResult:
 
+        y_true_series = y_true.test_volatility_raw
+        if y_true_series.empty:
+            y_true_series = y_true.test_volatility
+
         y_pred_series = convert_list_to_series(
             [row.timestamp for row in y_pred.rows],
-            [row.predicted_volatility for row in y_pred.rows],
+            [
+                row.predicted_volatility
+                if row.predicted_volatility is not None
+                else row.predicted_value
+                for row in y_pred.rows
+            ],
         )
 
         return cls().evaluate(
             model_name=y_pred.model_name,
             asset=y_pred.asset,
-            y_true=y_true.test,
+            y_true=y_true_series,
             y_pred=y_pred_series,
         )
 

@@ -37,3 +37,18 @@ def create_experiment_directory(output_dir: str, experiment_name: str) -> str:
     )
     os.makedirs(path, exist_ok=True)
     return path
+
+
+def prediction_results_to_dataframe(symbol: str, model_name: str, prediction_results) -> pd.DataFrame:
+    """
+    Convierte los resultados de predicción en un DataFrame para su almacenamiento.
+    """
+    return pd.DataFrame(
+        {
+            "timestamp": [row.timestamp for row in prediction_results.rows],
+            "real_value": [row.real_value for row in prediction_results.rows],
+            "predicted_value": [row.predicted_value for row in prediction_results.rows],
+            "model_name": model_name,
+            "symbol": symbol,
+        }
+    )

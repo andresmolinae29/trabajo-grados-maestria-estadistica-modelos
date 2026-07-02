@@ -25,7 +25,6 @@ def make_time_series_input(series: pd.Series) -> TimeSeriesInput:
     return TimeSeriesInput(
         metadata=make_asset_metadata(),
         series=series,
-        log_returns=pd.Series(dtype=float),
     )
 
 
@@ -78,49 +77,131 @@ def test_preprocess_fills_missing_values_and_casts_to_float() -> None:
         dtype=float,
     )
     data = make_time_series_input(series)
+    preprocessor = DataPreprocessor(data)
+    preprocessor._preprocess()
 
-    processed = DataPreprocessor(make_asset_metadata()).preprocess(data)
-
-    assert processed.series.dtype == float
-    assert processed.series.isna().sum() == 0
-    assert list(processed.series.values) == [100.0, 100.0, 102.0]
+    assert preprocessor.data.series.dtype == float
+    assert preprocessor.data.series.isna().sum() == 0
+    assert list(preprocessor.data.series.values) == [100.0, 100.0, 102.0]
 
 
-def test_compute_log_returns_matches_expected_formula() -> None:
+def test_returns_series_computes_simple_returns() -> None:
     series = pd.Series(
         [100.0, 110.0, 121.0],
         index=pd.date_range("2026-01-01", periods=3, freq="15min"),
     )
     data = make_time_series_input(series)
+    preprocessor = DataPreprocessor(data)
+    preprocessor._returns_series()
 
-    processed = DataPreprocessor(make_asset_metadata()).compute_log_returns(data)
+    # retorno: (P_t - P_{t-1}) / P_t
+    expected = pd.Series(
+        [10.0 / 110.0, 11.0 / 121.0],
+        index=series.index[1:],
+        dtype=float,
+    )
+    pd.testing.assert_series_equal(preprocessor.data.returns, expected, check_names=False)  # type: ignore
 
-    expected = np.log(pd.Series([1.1, 1.1], index=series.index[1:]))
-    pd.testing.assert_series_equal(processed.log_returns, expected, check_names=False) # type: ignore
 
-
-def test_normalize_standardizes_log_returns() -> None:
-    data = make_time_series_input(pd.Series(dtype=float))
-    data.log_returns = pd.Series(
-        [1.0, 2.0, 3.0],
+def test_returns_series_drops_leading_nan() -> None:
+    series = pd.Series(
+        [50.0, 55.0, 60.5],
         index=pd.date_range("2026-01-01", periods=3, freq="15min"),
     )
+    data = make_time_series_input(series)
+    preprocessor = DataPreprocessor(data)
+    preprocessor._returns_series()
 
-    normalized = DataPreprocessor(make_asset_metadata()).normalize(data)
+    assert preprocessor.data.returns is not None
+    assert preprocessor.data.returns.isna().sum() == 0
+    assert len(preprocessor.data.returns) == 2
 
-    assert pytest.approx(float(normalized.log_returns.mean()), abs=1e-9) == 0.0
-    assert pytest.approx(float(normalized.log_returns.std()), abs=1e-9) == 1.0
 
+def test_innovations_series_is_centered_returns() -> None:
+    series = pd.Series(
+        [100.0, 104.0, 108.16, 112.486],
+        index=pd.date_range("2026-01-01", periods=4, freq="15min"),
+    )
+    data = make_time_series_input(series)
+    preprocessor = DataPreprocessor(data)
+    preprocessor._returns_series()
+    preprocessor._innovations_series()
 
-def test_split_data_uses_train_ratio_and_records_split_index() -> None:
-    data = make_time_series_input(pd.Series(dtype=float))
-    data.log_returns = pd.Series(
-        [0.1, 0.2, 0.3, 0.4, 0.5],
-        index=pd.date_range("2026-01-01", periods=5, freq="15min"),
+    returns = preprocessor.data.returns
+    innovations = preprocessor.data.innovations
+    assert innovations is not None
+    assert pytest.approx(float(innovations.mean()), abs=1e-12) == 0.0
+    pd.testing.assert_series_equal(
+        innovations, returns - returns.mean(), check_names=False  # type: ignore
     )
 
-    split = DataPreprocessor(make_asset_metadata()).split_data(data, train_ratio=0.6)
 
-    assert split.split_index == 3
-    assert list(split.train.values) == [0.1, 0.2, 0.3]
-    assert list(split.test.values) == [0.4, 0.5]
+def test_volatility_series_computes_annualized_rolling_std() -> None:
+    rng = np.random.default_rng(0)
+    prices = pd.Series(
+        100.0 * np.exp(np.cumsum(rng.normal(0, 0.005, 300))),
+        index=pd.date_range("2020-01-01", periods=300, freq="15min"),
+        dtype=float,
+    )
+    data = make_time_series_input(prices)
+    preprocessor = DataPreprocessor(data)
+    preprocessor._returns_series()
+    preprocessor._volatility_series(omega=20)
+
+    vol = preprocessor.data.volatility_series
+    assert vol is not None
+    assert vol.isna().sum() == 0
+    # 300 precios -> 299 retornos; rolling(20) con iloc[19:-1] -> 299 - 20 = 279 valores
+    assert len(vol) == 279
+
+
+def test_volatility_series_matches_manual_calculation() -> None:
+    rng = np.random.default_rng(7)
+    prices = pd.Series(
+        100.0 * np.exp(np.cumsum(rng.normal(0, 0.01, 30))),
+        index=pd.date_range("2026-01-01", periods=30, freq="15min"),
+    )
+    data = make_time_series_input(prices)
+    preprocessor = DataPreprocessor(data)
+    preprocessor._returns_series()
+    preprocessor._volatility_series(omega=5)
+
+    returns = preprocessor.data.returns
+    # replica el mismo slice que usa _volatility_series: iloc[omega-1:-1]
+    expected = (
+        returns.rolling(window=5).std(ddof=1) * np.sqrt(252)
+    ).iloc[4:-1]
+    pd.testing.assert_series_equal(
+        preprocessor.data.volatility_series, expected, check_names=False  # type: ignore
+    )
+
+
+def test_pipeline_populates_returns_innovations_and_volatility() -> None:
+    rng = np.random.default_rng(1)
+    prices = pd.Series(
+        100.0 * np.exp(np.cumsum(rng.normal(0, 0.005, 300))),
+        index=pd.date_range("2025-01-01", periods=300, freq="15min"),
+        dtype=float,
+    )
+    data = make_time_series_input(prices)
+
+    result = DataPreprocessor(data).pipeline()
+
+    assert result.returns is not None and len(result.returns) > 0
+    assert result.innovations is not None and len(result.innovations) > 0
+    assert result.volatility_series is not None and len(result.volatility_series) > 0
+    assert result.returns.isna().sum() == 0
+    assert result.volatility_series.isna().sum() == 0
+
+
+def test_pipeline_volatility_has_no_leading_nans_from_rolling_window() -> None:
+    rng = np.random.default_rng(2)
+    prices = pd.Series(
+        100.0 * np.exp(np.cumsum(rng.normal(0, 0.005, 300))),
+        index=pd.date_range("2025-01-01", periods=300, freq="15min"),
+        dtype=float,
+    )
+    result = DataPreprocessor(make_time_series_input(prices)).pipeline()
+
+    assert result.volatility_series is not None
+    assert result.volatility_series.isna().sum() == 0

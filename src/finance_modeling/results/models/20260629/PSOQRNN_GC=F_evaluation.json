@@ -1,0 +1,7 @@
+{
+    "model_name": "PSOQRNN",
+    "asset": "GC=F",
+    "rmse": 0.00026763628685783314,
+    "mae": 0.00020781794096184,
+    "versus_baseline": true
+}
