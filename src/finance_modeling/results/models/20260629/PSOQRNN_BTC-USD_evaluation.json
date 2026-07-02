@@ -1,0 +1,7 @@
+{
+    "model_name": "PSOQRNN",
+    "asset": "BTC-USD",
+    "rmse": 0.00034877347231117674,
+    "mae": 0.00020313859235223153,
+    "versus_baseline": true
+}

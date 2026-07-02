@@ -1,291 +1,185 @@
 import numpy as np
 import pandas as pd
+from sklearn.preprocessing import MinMaxScaler
 import torch
 
 from PyEMD import CEEMDAN
 from torch import nn
-from torch.utils.data import DataLoader, TensorDataset
+from torch.utils.data import DataLoader, Dataset
 
-from .base import BaseVolatilityModel, _Regressor
+from .base import BaseVolatilityModel
 
 from ..schemas import (
     ModelConfig,
-    PredictionResult,
-    AssetMetadata,
-    PredictionRow,
 )
 from ..utils import logger
+
+
+np.random.seed(42)
+torch.manual_seed(42)
+
+
+def ceemdan_features(series):
+
+    ceemdan = CEEMDAN()
+    imfs = ceemdan(series.values)
+
+    return imfs.T
+
+
+def create_sequences(X: np.ndarray, y: np.ndarray, seq_length: int) -> tuple[np.ndarray, np.ndarray]:
+
+    X_seq, y_seq = [], []
+    for i in range(len(X) - seq_length):
+        X_seq.append(X[i:i + seq_length])
+        y_seq.append(y[i + seq_length])
+    return np.array(X_seq), np.array(y_seq)
+
+
+class VolDataset(Dataset):
+
+    def __init__(self, X: np.ndarray, y: np.ndarray):
+        self.X = torch.as_tensor(X).float()
+        self.y = torch.as_tensor(y).float()
+
+    def __len__(self):
+        return len(self.X)
+
+    def __getitem__(self, idx):
+        return self.X[idx], self.y[idx]
+
+
+class CEEMDANLSTM(nn.Module):
+
+    def __init__(self, n_features: int):
+
+        super().__init__()
+        self.lstm = nn.LSTM(
+            input_size=n_features,
+            hidden_size=128,
+            num_layers=2,
+            batch_first=True,
+            dropout=0.2
+        )
+
+        self.fc = nn.Sequential(
+            nn.Linear(128, 64),
+            nn.ReLU(),
+            nn.Linear(64, 1)
+        )
+
+    def forward(self, x):
+
+        out, _ = self.lstm(x)
+        out = out[:, -1, :]
+        return self.fc(out)
 
 
 class CEEMDANLSTMModel(BaseVolatilityModel):
 
     name = "CEEMDAN-LSTM"
+    WINDOW_SIZE = 20
+    BATCH_SIZE = 32
+    EPOCHS = 80
+    LR = 1e-3
+    DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    def __init__(self, config: ModelConfig, asset_metadata: AssetMetadata):
+    def __init__(self, config: ModelConfig, symbol: str, **kwargs):
+        super().__init__(config, symbol, **kwargs)
 
-        super().__init__(config, asset_metadata)
+        self.returns = kwargs.get("returns", pd.Series())
+        self.volatility = kwargs.get("volatility", pd.Series())
+        X, y = self._build_raw_dataset()
+        self.train_loader, self.test_loader, self.x_scaler, self.y_scaler = self._build_dataset(X, y)
+        self.y_test = self.y_scaler.inverse_transform(self.test_loader.dataset.y.cpu().numpy().reshape(-1,1)) # type: ignore
+        self.model = CEEMDANLSTM(n_features=X.shape[1]).to(self.DEVICE)
 
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.models: list[_Regressor] = []
-        self.train_imfs: list[np.ndarray] = []
-        self.best_hyperparameters: dict = {}
-        self.window_size: int = 0
+    def _build_raw_dataset(self) -> tuple[np.ndarray, np.ndarray]:
 
-        logger.info(
-            "Using device for CEEMDAN-LSTM: %s (torch=%s, cuda_available=%s)",
-            self.device,
-            torch.__version__,
-            torch.cuda.is_available(),
-        )
+        imfs = ceemdan_features(self.returns)
+        T = min(len(self.volatility), imfs.shape[0])
 
-    def __set_random_seed(self) -> None:
+        sig = self.volatility.values[-T:]
+        imfs = imfs[-T:]
 
-        torch.manual_seed(self.config.random_seed)
-        np.random.seed(self.config.random_seed)
+        X_raw = []
+        y_raw = []
 
-        if torch.cuda.is_available():
-            torch.cuda.manual_seed_all(self.config.random_seed)
+        for i in range(T - 1):
 
-    def __decompose_series(self, X: pd.Series | np.ndarray) -> list[np.ndarray]:
+            x_i = np.concatenate([
+                imfs[i],        # CEEMDAN features
+                [sig[i]]        # lag volatility
+            ])
 
-        values = np.asarray(X, dtype=np.float32)
-        logger.info("Starting CEEMDAN decomposition for %s observations.", len(values))
-        ceemdan = CEEMDAN()
-        imfs = ceemdan(values)
-        logger.info("Completed CEEMDAN decomposition with %s IMFs.", len(imfs))
-        return [np.asarray(imf, dtype=np.float32) for imf in imfs]
+            y_i = sig[i + 1]
 
-    def __resolve_window_size(self, series_length: int, hyperparameters: dict) -> int:
+            X_raw.append(x_i)
+            y_raw.append(y_i)
 
-        if series_length < 4:
-            raise ValueError("CEEMDAN-LSTM requires at least 4 observations.")
+        return np.array(X_raw), np.array(y_raw)
 
-        requested_window = int(hyperparameters.get("window_size", 20))
-        return max(2, min(requested_window, series_length - 2))
+    def _build_dataset(self, X_raw, y_raw) -> tuple[DataLoader, DataLoader, MinMaxScaler, MinMaxScaler]:
 
-    def __make_windows(self, series: np.ndarray, window_size: int) -> tuple[np.ndarray, np.ndarray]:
+        split = int(len(X_raw) * 0.8)
+        X_train, X_test = X_raw[:split], X_raw[split:]
+        y_train, y_test = y_raw[:split], y_raw[split:]
 
-        if len(series) <= window_size:
-            raise ValueError(
-                f"Series length {len(series)} is not enough for window size {window_size}."
-            )
+        x_scaler = MinMaxScaler()
+        y_scaler = MinMaxScaler()
 
-        features = []
-        targets = []
+        X_train = x_scaler.fit_transform(X_train)
+        X_test = x_scaler.transform(X_test)
 
-        for index in range(len(series) - window_size):
-            features.append(series[index : index + window_size])
-            targets.append(series[index + window_size])
+        y_train = y_scaler.fit_transform(y_train.reshape(-1,1))
+        y_test = y_scaler.transform(y_test.reshape(-1,1))
 
-        return np.asarray(features, dtype=np.float32), np.asarray(targets, dtype=np.float32)
+        X_train, y_train = create_sequences(X_train, y_train, self.WINDOW_SIZE)
+        X_test, y_test = create_sequences(X_test, y_test, self.WINDOW_SIZE)
 
-    def __build_model(self, hyperparameters: dict) -> _Regressor:
+        train_loader = DataLoader(VolDataset(X_train, y_train), batch_size=self.BATCH_SIZE, shuffle=False)
+        test_loader = DataLoader(VolDataset(X_test, y_test), batch_size=self.BATCH_SIZE, shuffle=False)
 
-        return _Regressor(
-            input_size=1,
-            hidden_size=int(hyperparameters.get("hidden_size", 32)),
-            num_layers=int(hyperparameters.get("num_layers", 1)),
-            dropout=float(hyperparameters.get("dropout", 0.0)),
-            output_size=1,
-        ).to(self.device)
+        return train_loader, test_loader, x_scaler, y_scaler
 
-    def __train_single_imf_model(
-        self,
-        imf: np.ndarray,
-        hyperparameters: dict,
-        imf_index: int | None = None,
-        total_imfs: int | None = None,
-    ) -> _Regressor:
+    def fit(self) -> BaseVolatilityModel:
 
-        window_size = self.__resolve_window_size(len(imf), hyperparameters)
-        features, targets = self.__make_windows(imf, window_size)
+        criterion = nn.MSELoss()
+        optimizer = torch.optim.Adam(self.model.parameters(), lr=self.LR)
 
-        dataset = TensorDataset(
-            torch.from_numpy(features).unsqueeze(-1),
-            torch.from_numpy(targets).unsqueeze(-1),
-        )
-
-        batch_size = min(int(hyperparameters.get("batch_size", 32)), len(dataset))
-        loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
-
-        model = self.__build_model(hyperparameters)
-        optimizer = torch.optim.Adam(
-            model.parameters(),
-            lr=float(hyperparameters.get("learning_rate", 1e-3)),
-        )
-        loss_fn = nn.MSELoss()
-        epochs = int(hyperparameters.get("epochs", 25))
-        progress_label = (
-            f"IMF {imf_index}/{total_imfs}"
-            if imf_index is not None and total_imfs is not None
-            else "IMF"
-        )
-
-        logger.info(
-            "Training %s with %s windows, batch_size=%s, epochs=%s, device=%s.",
-            progress_label,
-            len(dataset),
-            batch_size,
-            epochs,
-            self.device,
-        )
-
-        model.train()
-        log_every = max(1, epochs // 5)
-        for epoch in range(epochs):
-            epoch_loss = 0.0
-            for batch_features, batch_targets in loader:
-                batch_features = batch_features.to(self.device)
-                batch_targets = batch_targets.to(self.device)
-
+        n_epochs = self.EPOCHS
+        for epoch in range(n_epochs):
+            self.model.train()
+            epoch_loss = 0
+            for X_batch, y_batch in self.train_loader:
+                X_batch, y_batch = X_batch.to(self.DEVICE), y_batch.to(self.DEVICE)
                 optimizer.zero_grad()
-                predictions = model(batch_features)
-                loss = loss_fn(predictions, batch_targets)
+                outputs = self.model(X_batch)
+                loss = criterion(outputs, y_batch)
                 loss.backward()
                 optimizer.step()
-                epoch_loss += float(loss.item())
+                epoch_loss += loss.item()
 
-            should_log_epoch = epoch == 0 or epoch == epochs - 1 or (epoch + 1) % log_every == 0
-            if should_log_epoch:
-                average_loss = epoch_loss / max(1, len(loader))
-                logger.info(
-                    "%s training progress: epoch %s/%s, avg_loss=%.6f",
-                    progress_label,
-                    epoch + 1,
-                    epochs,
-                    average_loss,
-                )
+            if (epoch + 1) % 10 == 0:
+                logger.info(f"Epoch {epoch + 1}/{n_epochs}, Loss: {epoch_loss / len(self.train_loader):.6f}")
 
-        logger.info("Finished training %s.", progress_label)
-
-        return model
-
-    def __forecast_single_imf(self, model: _Regressor, imf: np.ndarray, horizon: int, window_size: int) -> np.ndarray:
-
-        history = list(np.asarray(imf, dtype=np.float32))
-        forecasts = []
-
-        logger.info("Forecasting %s steps from IMF history of length %s.", horizon, len(history))
-
-        model.eval()
-        with torch.no_grad():
-            for _ in range(horizon):
-                window = np.asarray(history[-window_size:], dtype=np.float32).reshape(1, window_size, 1)
-                features = torch.from_numpy(window).to(self.device)
-                prediction = float(model(features).item())
-                forecasts.append(prediction)
-                history.append(prediction)
-
-        logger.info("Finished forecasting %s steps.", horizon)
-
-        return np.asarray(forecasts, dtype=np.float32)
-
-    def __score_hyperparameters(self, X: pd.Series, hyperparameters: dict) -> float:
-
-        window_size = self.__resolve_window_size(len(X), hyperparameters)
-        max_validation_size = len(X) - window_size - 1
-
-        if max_validation_size < 1:
-            raise ValueError("Not enough observations to create a validation split.")
-
-        validation_size = int(hyperparameters.get("validation_size", max(1, int(len(X) * 0.2))))
-        validation_size = max(1, min(validation_size, max_validation_size))
-
-        train_series = X.iloc[:-validation_size]
-        validation_series = X.iloc[-validation_size:]
-        train_imfs = self.__decompose_series(train_series)
-
-        component_forecasts = []
-        total_imfs = len(train_imfs)
-        for imf_index, imf in enumerate(train_imfs, start=1):
-            model = self.__train_single_imf_model(
-                imf,
-                hyperparameters,
-                imf_index=imf_index,
-                total_imfs=total_imfs,
-            )
-            component_forecasts.append(
-                self.__forecast_single_imf(model, imf, horizon=validation_size, window_size=window_size)
-            )
-
-        aggregated_forecast = np.sum(np.vstack(component_forecasts), axis=0)
-        validation_values = validation_series.to_numpy(dtype=np.float32)
-
-        return float(np.sqrt(np.mean((aggregated_forecast - validation_values) ** 2)))
-
-    def __select_hyperparameters(self, X: pd.Series) -> dict:
-
-        hyperparameter_candidates = self.config.hyperparameters_list or [{}]
-        best_score = float("inf")
-        best_hyperparameters = None
-
-        for hyperparameters in hyperparameter_candidates:
-            try:
-                logger.info(f"Evaluating CEEMDAN-LSTM hyperparameters: {hyperparameters}")
-                score = self.__score_hyperparameters(X, hyperparameters)
-                if score < best_score:
-                    best_score = score
-                    best_hyperparameters = hyperparameters
-            except Exception as error:
-                logger.warning(
-                    f"Error scoring CEEMDAN-LSTM hyperparameters {hyperparameters}: {error}"
-                )
-
-        if best_hyperparameters is None:
-            raise ValueError("No valid CEEMDAN-LSTM hyperparameter configuration could be fitted.")
-
-        return best_hyperparameters
-
-    def fit(self, X: pd.Series, y: pd.Series | None = None) -> None:
-
-        self.__set_random_seed()
-        self.best_hyperparameters = self.__select_hyperparameters(X)
-        logger.info(f"Selected CEEMDAN-LSTM hyperparameters: {self.best_hyperparameters}")
-        self.window_size = self.__resolve_window_size(len(X), self.best_hyperparameters)
-        self.train_imfs = self.__decompose_series(X)
-        total_imfs = len(self.train_imfs)
-        self.models = []
-        for imf_index, imf in enumerate(self.train_imfs, start=1):
-            self.models.append(
-                self.__train_single_imf_model(
-                    imf,
-                    self.best_hyperparameters,
-                    imf_index=imf_index,
-                    total_imfs=total_imfs,
-                )
-            )
         self.is_fitted = True
+        return self
 
-    def predict(self, X: pd.Series, y: pd.Series) -> PredictionResult:
+    def predict(self) -> np.ndarray:
 
         if not self.is_fitted:
             raise ValueError("Model must be fitted before prediction.")
 
-        horizon = len(y)
-        component_forecasts = [
-            self.__forecast_single_imf(model, imf, horizon, self.window_size)
-            for model, imf in zip(self.models, self.train_imfs)
-        ]
-        values = np.sum(np.vstack(component_forecasts), axis=0)
-        timestamps = y.index
+        self.model.eval()
+        predictions = []
+        with torch.no_grad():
+            for X_batch, _ in self.test_loader:
+                X_batch = X_batch.to(self.DEVICE)
+                outputs = self.model(X_batch)
+                predictions.append(outputs.cpu().numpy())
 
-        rows = [
-            PredictionRow(
-                timestamp=ts,
-                predicted_volatility=float(val),
-                lower_ci=None,
-                upper_ci=None,
-            )
-            for ts, val in zip(timestamps, values)
-        ]
+        predictions = np.vstack(predictions)
+        predictions = self.y_scaler.inverse_transform(predictions)
 
-        return PredictionResult(
-            model_name=self.name,
-            asset=self.asset_metadata.symbol,
-            horizon=horizon,
-            rows=rows,
-        )
-
-
-if __name__ == "__main__":
-    pass
+        return predictions

@@ -66,11 +66,21 @@ class ModelComparator:
 
         converted_pred_baseline = convert_list_to_series(
             [row.timestamp for row in pred_baseline.rows],
-            [row.predicted_volatility for row in pred_baseline.rows],
+            [
+                row.predicted_volatility
+                if row.predicted_volatility is not None
+                else row.predicted_value
+                for row in pred_baseline.rows
+            ],
         )
         converted_pred_challenger = convert_list_to_series(
             [row.timestamp for row in pred_challenger.rows],
-            [row.predicted_volatility for row in pred_challenger.rows],
+            [
+                row.predicted_volatility
+                if row.predicted_volatility is not None
+                else row.predicted_value
+                for row in pred_challenger.rows
+            ],
         )
 
         return comparator.compare(

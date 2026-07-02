@@ -17,7 +17,7 @@ def make_prediction_result(model_name: str, values: list[float]) -> PredictionRe
         asset="BTC-USD",
         horizon=len(values),
         rows=[
-            PredictionRow(timestamp=timestamp, predicted_volatility=value)
+            PredictionRow(timestamp=timestamp, predicted_value=value)
             for timestamp, value in zip(index, values)
         ],
     )

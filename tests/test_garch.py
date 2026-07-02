@@ -7,82 +7,82 @@ import pandas as pd
 import pytest
 
 from finance_modeling.models.garch import GARCHModel
-from finance_modeling.schemas import ModelConfig, PredictionResult
-from finance_modeling.schemas.data import AssetMetadata, AssetType
+from finance_modeling.schemas import ModelConfig
+
+
+def make_prices(n: int = 400) -> pd.Series:
+    """Serie de precios suficiente para la ventana rolling de 252 periodos."""
+    rng = np.random.default_rng(42)
+    log_r = rng.normal(0, 0.005, n)
+    prices = 100.0 * np.exp(np.cumsum(log_r))
+    return pd.Series(prices, index=pd.date_range("2024-01-01", periods=n, freq="15min"), dtype=float)
 
 
 def make_model(hyperparameters_list: list[dict]) -> GARCHModel:
     return GARCHModel(
         config=ModelConfig(name="GARCH", hyperparameters_list=hyperparameters_list),
-        asset_metadata=AssetMetadata(
-            symbol="BTC-USD",
-            asset_type=AssetType.CRYPTO,
-            description="Bitcoin",
-            data_folder="bitcoin",
-        ),
+        symbol="BTC-USD",
+        prices=make_prices(),
     )
 
 
-def make_series(values: list[float]) -> pd.Series:
-    index = pd.date_range("2026-01-01", periods=len(values), freq="15min")
-    return pd.Series(values, index=index, dtype=float)
-
-
-class FakeSetModelResult:
-    def __init__(self, aic: float):
+class _FakeArchResult:
+    """Resultado falso de arch_model compatible con fit() y fix()."""
+    def __init__(self, aic: float, n: int = 10):
         self.aic = aic
-        self.fit_calls = 0
+        self.params = pd.Series({"omega": 0.01, "alpha[1]": 0.1, "beta[1]": 0.8})
+        self.resid = np.zeros(n, dtype=float)
+        self.conditional_volatility = np.ones(n, dtype=float) * 0.5
 
-    def fit(self, disp: str = "off"):
-        self.fit_calls += 1
-        return SimpleNamespace(aic=self.aic)
+    def fit(self, disp="off", options=None):
+        return self
+
+    def fix(self, params):
+        return self
+
 
 
 def test_fit_selects_hyperparameters_with_lowest_aic(monkeypatch: pytest.MonkeyPatch) -> None:
-    candidate_aic = {
-        "{'p': 1, 'q': 1}": 15.0,
-        "{'p': 1, 'q': 2}": 9.0,
-        "{'p': 2, 'q': 1}": 12.0,
+    candidate_aic: dict[frozenset, float] = {
+        frozenset({"p": 1, "q": 1}.items()): 15.0,
+        frozenset({"p": 1, "q": 2}.items()): 9.0,
+        frozenset({"p": 2, "q": 1}.items()): 12.0,
     }
-    set_model_calls: list[dict] = []
 
-    def fake_set_model(self, X: pd.Series, hyperparameters: dict):
-        set_model_calls.append(hyperparameters)
-        return FakeSetModelResult(candidate_aic[str(hyperparameters)])
+    def fake_arch_model(residuals, vol="GARCH", rescale=False, mean="Zero", **hp):
+        aic = candidate_aic[frozenset(hp.items())]
+        return _FakeArchResult(aic)
 
-    model = make_model([
-        {"p": 1, "q": 1},
-        {"p": 1, "q": 2},
-        {"p": 2, "q": 1},
-    ])
-    monkeypatch.setattr(GARCHModel, "_GARCHModel__set_model", fake_set_model)
+    model = make_model([{"p": 1, "q": 1}, {"p": 1, "q": 2}, {"p": 2, "q": 1}])
+    monkeypatch.setattr("finance_modeling.models.garch.arch.arch_model", fake_arch_model)
+    monkeypatch.setattr(
+        GARCHModel,
+        "_GARCHModel__fit_mean_model",
+        lambda self, X: SimpleNamespace(resid=lambda: np.zeros(10, dtype=float)),
+    )
 
-    model.fit(make_series([0.1, 0.2, 0.3, 0.4]))
+    model.fit()
 
-    assert set_model_calls == [
-        {"p": 1, "q": 1},
-        {"p": 1, "q": 2},
-        {"p": 2, "q": 1},
-        {"p": 1, "q": 2},
-    ]
     assert model.best_hyperparameters == {"p": 1, "q": 2}
     assert model.is_fitted is True
     assert model.model.aic == 9.0
 
 
 def test_fit_skips_failing_hyperparameter_candidates(monkeypatch: pytest.MonkeyPatch) -> None:
-    def fake_set_model(self, X: pd.Series, hyperparameters: dict):
-        if hyperparameters == {"p": 1, "q": 1}:
+    def fake_arch_model(residuals, vol="GARCH", rescale=False, mean="Zero", **hp):
+        if hp == {"p": 1, "q": 1}:
             raise RuntimeError("bad candidate")
-        return FakeSetModelResult(7.0)
+        return _FakeArchResult(7.0)
 
-    model = make_model([
-        {"p": 1, "q": 1},
-        {"p": 1, "q": 2},
-    ])
-    monkeypatch.setattr(GARCHModel, "_GARCHModel__set_model", fake_set_model)
+    model = make_model([{"p": 1, "q": 1}, {"p": 1, "q": 2}])
+    monkeypatch.setattr("finance_modeling.models.garch.arch.arch_model", fake_arch_model)
+    monkeypatch.setattr(
+        GARCHModel,
+        "_GARCHModel__fit_mean_model",
+        lambda self, X: SimpleNamespace(resid=lambda: np.zeros(10, dtype=float)),
+    )
 
-    model.fit(make_series([0.1, 0.2, 0.3, 0.4]))
+    model.fit()
 
     assert model.best_hyperparameters == {"p": 1, "q": 2}
     assert model.is_fitted is True
@@ -92,28 +92,38 @@ def test_predict_raises_before_fit() -> None:
     model = make_model([{"p": 1, "q": 1}])
 
     with pytest.raises(ValueError, match="Model must be fitted before prediction"):
-        model.predict(make_series([0.1, 0.2]), make_series([0.3]))
+        model.predict()
 
 
-def test_predict_maps_forecast_output_to_prediction_result() -> None:
+def test_predict_returns_ndarray_matching_test_period_length(monkeypatch: pytest.MonkeyPatch) -> None:
     model = make_model([{"p": 1, "q": 1}])
-    train = make_series([0.1, 0.2, 0.3])
-    test = make_series([0.4, 0.5])
+    n_test = len(model.test_returns)
+    n_train_resid = 10  # residuos simulados de entrenamiento
+
     model.is_fitted = True
-    fake_model = SimpleNamespace(
-        forecast=lambda start, horizon: SimpleNamespace(
-            variance=SimpleNamespace(values=np.asarray([[1.5, 2.5]], dtype=float))
-        )
+    model.best_hyperparameters = {"p": 1, "q": 1}
+    model.model = SimpleNamespace(
+        params=pd.Series({"omega": 0.01, "alpha[1]": 0.1, "beta[1]": 0.8}),
+        resid=np.zeros(n_train_resid, dtype=float),
     )
-    setattr(model, "model", fake_model)
 
-    prediction = model.predict(train, test)
+    fake_mean_model = SimpleNamespace(
+        predict=lambda n_periods=1: np.asarray([0.001], dtype=float),
+        update=lambda v: None,
+    )
+    monkeypatch.setattr("finance_modeling.models.garch.deepcopy", lambda obj: fake_mean_model)
 
-    assert isinstance(prediction, PredictionResult)
-    assert prediction.model_name == "GARCH"
-    assert prediction.asset == "BTC-USD"
-    assert prediction.horizon == 2
-    assert [row.timestamp for row in prediction.rows] == list(test.index)
-    assert [row.predicted_volatility for row in prediction.rows] == [1.5, 2.5]
-    assert all(row.lower_ci is None for row in prediction.rows)
-    assert all(row.upper_ci is None for row in prediction.rows)
+    total_len = n_train_resid + n_test
+    fake_cond_vol = np.abs(np.random.default_rng(0).normal(1.0, 0.1, total_len))
+    monkeypatch.setattr(
+        "finance_modeling.models.garch.arch.arch_model",
+        lambda residuals, vol="GARCH", rescale=False, mean="Zero", **hp: SimpleNamespace(
+            fix=lambda params: SimpleNamespace(conditional_volatility=fake_cond_vol[: len(residuals)])
+        ),
+    )
+
+    result = model.predict()
+
+    assert isinstance(result, np.ndarray)
+    assert len(result) == n_test
+    assert np.all(result > 0)

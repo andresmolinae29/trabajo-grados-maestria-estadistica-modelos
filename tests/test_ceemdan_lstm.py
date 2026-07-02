@@ -43,22 +43,24 @@ def test_fit_updates_state_from_selected_hyperparameters(monkeypatch: pytest.Mon
         "hidden_size": 8,
         "num_layers": 1,
     }
-    train_imfs = [
+    train_components = [
         np.asarray([0.1, 0.2, 0.3, 0.4], dtype=np.float32),
         np.asarray([0.05, 0.1, 0.15, 0.2], dtype=np.float32),
+        np.asarray([0.01, 0.01, 0.01, 0.01], dtype=np.float32),
     ]
-    trained_models = [SimpleNamespace(name="imf_1"), SimpleNamespace(name="imf_2")]
+    component_labels = ["IMF 1", "IMF 2", "Residue"]
+    trained_models = [SimpleNamespace(name="imf_1"), SimpleNamespace(name="imf_2"), SimpleNamespace(name="residue")]
     call_log: list[str] = []
 
     monkeypatch.setattr(model, "_CEEMDANLSTMModel__set_random_seed", lambda: call_log.append("seed"))
     monkeypatch.setattr(model, "_CEEMDANLSTMModel__select_hyperparameters", lambda X: selected_hyperparameters)
     monkeypatch.setattr(model, "_CEEMDANLSTMModel__resolve_window_size", lambda series_length, hyperparameters: 4)
-    monkeypatch.setattr(model, "_CEEMDANLSTMModel__decompose_series", lambda X: train_imfs)
+    monkeypatch.setattr(model, "_CEEMDANLSTMModel__decompose_series", lambda X: (train_components, component_labels))
 
-    train_calls: list[tuple[int, int, int]] = []
+    train_calls: list[tuple[int, int, int, str | None]] = []
 
-    def fake_train_single_imf_model(imf, hyperparameters, imf_index=None, total_imfs=None):
-        train_calls.append((len(imf), imf_index, total_imfs))
+    def fake_train_single_imf_model(component, hyperparameters, imf_index=None, total_imfs=None, component_label=None):
+        train_calls.append((len(component), imf_index, total_imfs, component_label))
         return trained_models[imf_index - 1]  # type: ignore[index]
 
     monkeypatch.setattr(model, "_CEEMDANLSTMModel__train_single_imf_model", fake_train_single_imf_model)
@@ -68,9 +70,10 @@ def test_fit_updates_state_from_selected_hyperparameters(monkeypatch: pytest.Mon
     assert call_log == ["seed"]
     assert model.best_hyperparameters == selected_hyperparameters
     assert model.window_size == 4
-    assert model.train_imfs == train_imfs
+    assert model.train_components == train_components
+    assert model.component_labels == component_labels
     assert model.models == trained_models
-    assert train_calls == [(4, 1, 2), (4, 2, 2)]
+    assert train_calls == [(4, 1, 3, "IMF 1"), (4, 2, 3, "IMF 2"), (4, 3, 3, "Residue")]
     assert model.is_fitted is True
 
 
@@ -87,20 +90,23 @@ def test_predict_aggregates_component_forecasts_into_prediction_result(monkeypat
     test = make_series([0.5, 0.6])
     model.is_fitted = True
     model.window_size = 4
-    model.models = [SimpleNamespace(name="imf_1"), SimpleNamespace(name="imf_2")]
-    model.train_imfs = [
+    model.models = [SimpleNamespace(name="imf_1"), SimpleNamespace(name="imf_2"), SimpleNamespace(name="residue")]
+    model.train_components = [
         np.asarray([0.1, 0.2, 0.3, 0.4], dtype=np.float32),
         np.asarray([0.05, 0.1, 0.15, 0.2], dtype=np.float32),
+        np.asarray([0.01, 0.01, 0.01, 0.01], dtype=np.float32),
     ]
+    model.component_labels = ["IMF 1", "IMF 2", "Residue"]
 
     component_outputs = [
         np.asarray([0.10, 0.20], dtype=np.float32),
         np.asarray([0.02, 0.03], dtype=np.float32),
+        np.asarray([0.01, 0.01], dtype=np.float32),
     ]
-    forecast_calls: list[tuple[int, int, int]] = []
+    forecast_calls: list[tuple[int, int, int, str | None]] = []
 
-    def fake_forecast_single_imf(model_instance, imf, horizon, window_size):
-        forecast_calls.append((len(imf), horizon, window_size))
+    def fake_forecast_single_imf(model_instance, component, horizon, window_size, component_label=None):
+        forecast_calls.append((len(component), horizon, window_size, component_label))
         return component_outputs[len(forecast_calls) - 1]
 
     monkeypatch.setattr(model, "_CEEMDANLSTMModel__forecast_single_imf", fake_forecast_single_imf)
@@ -111,8 +117,8 @@ def test_predict_aggregates_component_forecasts_into_prediction_result(monkeypat
     assert prediction.model_name == "CEEMDAN-LSTM"
     assert prediction.asset == "BTC-USD"
     assert prediction.horizon == 2
-    assert forecast_calls == [(4, 2, 4), (4, 2, 4)]
+    assert forecast_calls == [(4, 2, 4, "IMF 1"), (4, 2, 4, "IMF 2"), (4, 2, 4, "Residue")]
     assert [row.timestamp for row in prediction.rows] == list(test.index)
-    assert [row.predicted_volatility for row in prediction.rows] == pytest.approx([0.12, 0.23])
+    assert [row.predicted_value for row in prediction.rows] == pytest.approx([0.13, 0.24])
     assert all(row.lower_ci is None for row in prediction.rows)
     assert all(row.upper_ci is None for row in prediction.rows)

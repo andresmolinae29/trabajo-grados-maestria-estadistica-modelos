@@ -1,0 +1,7 @@
+{
+    "model_name": "PSOQRNN",
+    "asset": "EURUSD=X",
+    "rmse": 5.994127310973795e-05,
+    "mae": 4.106731795238706e-05,
+    "versus_baseline": true
+}

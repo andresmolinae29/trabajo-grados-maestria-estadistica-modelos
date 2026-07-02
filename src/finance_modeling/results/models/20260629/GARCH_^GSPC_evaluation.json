@@ -1,0 +1,7 @@
+{
+    "model_name": "GARCH",
+    "asset": "^GSPC",
+    "rmse": 0.00875132018245931,
+    "mae": 0.007401362137541017,
+    "versus_baseline": true
+}

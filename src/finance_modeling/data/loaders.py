@@ -45,7 +45,11 @@ class RawDataLoader:
             series=df[self.data_config.column_to_use],
             frequency="15min",
             log_returns=pd.Series(),
+            raw_log_returns=pd.Series(),
             train=pd.Series(),
             test=pd.Series(),
+            train_raw=pd.Series(),
+            test_raw=pd.Series(),
+            test_prices=pd.Series(),
             split_index=0
         )

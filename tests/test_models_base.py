@@ -33,7 +33,7 @@ class DummyModel(BaseVolatilityModel):
             asset=self.asset_metadata.symbol,
             horizon=len(y),
             rows=[
-                PredictionRow(timestamp=timestamp, predicted_volatility=float(value))
+                PredictionRow(timestamp=timestamp, predicted_value=float(value))
                 for timestamp, value in zip(y.index, y.values)
             ],
         )
@@ -75,13 +75,13 @@ def test_save_results_writes_tabular_prediction_rows(tmp_path: Path) -> None:
         rows=[
             PredictionRow(
                 timestamp=pd.Timestamp("2026-01-01 00:00:00"),
-                predicted_volatility=0.1,
+                predicted_value=0.1,
                 lower_ci=0.05,
                 upper_ci=0.15,
             ),
             PredictionRow(
                 timestamp=pd.Timestamp("2026-01-01 00:15:00"),
-                predicted_volatility=0.2,
+                predicted_value=0.2,
                 lower_ci=0.1,
                 upper_ci=0.3,
             ),
@@ -97,13 +97,16 @@ def test_save_results_writes_tabular_prediction_rows(tmp_path: Path) -> None:
         "asset",
         "horizon",
         "timestamp",
-        "predicted_volatility",
+        "predicted_volatility_proxy",
+        "actual_volatility_proxy",
+        "predicted_volatility_proxy_normalized",
+        "actual_volatility_proxy_normalized",
         "lower_ci",
         "upper_ci",
     ]
-    assert frame.shape == (2, 7)
+    assert frame.shape == (2, 10)
     assert frame["model_name"].tolist() == ["DUMMY", "DUMMY"]
-    assert frame["predicted_volatility"].tolist() == [0.1, 0.2]
+    assert frame["predicted_volatility_proxy"].isna().all()
 
 
 def test_save_model_best_hyperparameters_writes_json_file(tmp_path: Path) -> None:
