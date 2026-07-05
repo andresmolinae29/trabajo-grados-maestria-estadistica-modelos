@@ -2,12 +2,12 @@
     "baseline_model": "GARCH",
     "challenger_model": "CEEMDAN_LSTM",
     "asset": "BTC-USD",
-    "rmse_baseline": 0.010655640093788634,
-    "rmse_challenger": 0.005250106339616955,
-    "rmse_diff": -0.005405533754171679,
-    "mae_baseline": 0.006894073679241507,
-    "mae_challenger": 0.004759081759638727,
-    "mae_diff": -0.0021349919196027804,
-    "dm_statistic": 10.979906766459436,
-    "dm_p_value": 3.509448636467716e-27
+    "rmse_baseline": 0.019965826185879214,
+    "rmse_challenger": 0.006205989659538662,
+    "rmse_diff": -0.013759836526340552,
+    "mae_baseline": 0.014165173176457251,
+    "mae_challenger": 0.005152501195647516,
+    "mae_diff": -0.009012671980809735,
+    "dm_statistic": 14.464763729544753,
+    "dm_p_value": 9.262381994926841e-46
 }

@@ -50,7 +50,7 @@ Baseline actual del proyecto. Usa residuales de `auto_arima` y selección de hip
 
 ### CEEMDAN-LSTM
 
-Challenger basado en descomposición CEEMDAN y entrenamiento de una red LSTM por IMF, con validación interna para selección de hiperparámetros.
+Challenger basado en descomposición CEEMDAN de la serie de retornos en IMFs (Funciones de Modo Intrínseco). Cada instante temporal se representa concatenando el vector de IMFs con la volatilidad realizada del mismo instante, y una única red LSTM unificada recibe estas características para predecir la volatilidad del período siguiente.
 
 ### PSO-QRNN
 

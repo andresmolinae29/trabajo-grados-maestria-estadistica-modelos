@@ -2,12 +2,12 @@
     "baseline_model": "GARCH",
     "challenger_model": "CEEMDAN_LSTM",
     "asset": "GC=F",
-    "rmse_baseline": 0.007105321893836776,
-    "rmse_challenger": 0.003858886722487084,
-    "rmse_diff": -0.003246435171349692,
-    "mae_baseline": 0.005038207378181526,
-    "mae_challenger": 0.0036745469671549255,
-    "mae_diff": -0.0013636604110266008,
-    "dm_statistic": 11.727119197105827,
-    "dm_p_value": 3.227753055871836e-30
+    "rmse_baseline": 0.012086841343047404,
+    "rmse_challenger": 0.005633049011439428,
+    "rmse_diff": -0.006453792331607976,
+    "mae_baseline": 0.007591774018355773,
+    "mae_challenger": 0.004477256367402673,
+    "mae_diff": -0.0031145176509531003,
+    "dm_statistic": 7.073279846547025,
+    "dm_p_value": 2.0969019818239864e-12
 }

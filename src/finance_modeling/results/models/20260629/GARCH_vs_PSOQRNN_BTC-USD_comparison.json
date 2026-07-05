@@ -2,12 +2,12 @@
     "baseline_model": "GARCH",
     "challenger_model": "PSOQRNN",
     "asset": "BTC-USD",
-    "rmse_baseline": 0.010655640093788634,
-    "rmse_challenger": 0.00034877347231117674,
-    "rmse_diff": -0.010306866621477458,
-    "mae_baseline": 0.006894073679241507,
-    "mae_challenger": 0.00020313859235223153,
-    "mae_diff": -0.006690935086889276,
-    "dm_statistic": 14.61870505922495,
-    "dm_p_value": 8.292772281867351e-46
+    "rmse_baseline": 0.019965826185879214,
+    "rmse_challenger": 0.00173794867052689,
+    "rmse_diff": -0.018227877515352323,
+    "mae_baseline": 0.014165173176457251,
+    "mae_challenger": 0.0012251586703016471,
+    "mae_diff": -0.012940014506155603,
+    "dm_statistic": 15.755515009423728,
+    "dm_p_value": 1.2498137045006326e-53
 }

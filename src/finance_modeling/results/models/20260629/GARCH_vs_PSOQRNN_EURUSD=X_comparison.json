@@ -2,12 +2,12 @@
     "baseline_model": "GARCH",
     "challenger_model": "PSOQRNN",
     "asset": "EURUSD=X",
-    "rmse_baseline": 0.0017722969489025059,
-    "rmse_challenger": 5.994127310973795e-05,
-    "rmse_diff": -0.001712355675792768,
-    "mae_baseline": 0.0012913253355560375,
-    "mae_challenger": 4.106731795238706e-05,
-    "mae_diff": -0.0012502580176036505,
-    "dm_statistic": 18.26643944314937,
-    "dm_p_value": 2.9119701236006514e-66
+    "rmse_baseline": 0.0019238685141832728,
+    "rmse_challenger": 0.00032725071791437027,
+    "rmse_diff": -0.0015966177962689026,
+    "mae_baseline": 0.001265204355140696,
+    "mae_challenger": 0.0002117118134741718,
+    "mae_diff": -0.0010534925416665242,
+    "dm_statistic": 12.73046964053347,
+    "dm_p_value": 9.964343530257889e-36
 }

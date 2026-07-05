@@ -108,8 +108,8 @@ class CEEMDANLSTMModel(BaseVolatilityModel):
         for i in range(T - 1):
 
             x_i = np.concatenate([
-                imfs[i],        # CEEMDAN features
-                [sig[i]]        # lag volatility
+                imfs[i],
+                [sig[i]]
             ])
 
             y_i = sig[i + 1]
