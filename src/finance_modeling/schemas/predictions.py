@@ -13,6 +13,7 @@ class PredictionRow(BaseModel):
         validation_alias=AliasChoices("predicted_value", "predicted_volatility")
     )
     real_value: float | None = Field(
+        default=None,
         validation_alias=AliasChoices("real_value", "actual_volatility")
     )
 

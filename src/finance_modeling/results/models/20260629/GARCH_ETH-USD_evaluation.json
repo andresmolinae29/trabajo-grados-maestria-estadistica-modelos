@@ -1,7 +1,7 @@
 {
     "model_name": "GARCH",
     "asset": "ETH-USD",
-    "rmse": 0.013708352891633165,
-    "mae": 0.00911294710919003,
+    "rmse": 0.02520487563047424,
+    "mae": 0.018441828289593634,
     "versus_baseline": true
 }

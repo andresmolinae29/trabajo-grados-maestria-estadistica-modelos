@@ -34,7 +34,7 @@ def make_time_series_input(test_values: list[float]) -> TimeSeriesInput:
 def make_prediction_result(values: list[float]) -> PredictionResult:
     index = pd.date_range("2026-01-01", periods=len(values), freq="15min")
     rows = [
-        PredictionRow(timestamp=timestamp, predicted_value=value, predicted_volatility=value)
+        PredictionRow(timestamp=timestamp, predicted_value=value, predicted_volatility=value, real_value=None)
         for timestamp, value in zip(index, values)
     ]
     return PredictionResult(

@@ -2,12 +2,12 @@
     "baseline_model": "GARCH",
     "challenger_model": "PSOQRNN",
     "asset": "^IXIC",
-    "rmse_baseline": 0.01215852166206129,
-    "rmse_challenger": 0.0006582050524022912,
-    "rmse_diff": -0.011500316609658999,
-    "mae_baseline": 0.00990537694628728,
-    "mae_challenger": 0.0005339079846938451,
-    "mae_diff": -0.009371468961593434,
-    "dm_statistic": 6.954097145168477,
-    "dm_p_value": 2.31500085359811e-11
+    "rmse_baseline": 0.025915102377485906,
+    "rmse_challenger": 0.0009945848920521975,
+    "rmse_diff": -0.02492051748543371,
+    "mae_baseline": 0.017695623179546618,
+    "mae_challenger": 0.0006985175110274503,
+    "mae_diff": -0.01699710566851917,
+    "dm_statistic": 6.220136040654807,
+    "dm_p_value": 1.0903759123662605e-09
 }
