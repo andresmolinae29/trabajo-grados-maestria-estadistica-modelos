@@ -58,97 +58,99 @@ def main():
                 )
                 model.fit()
 
-                predictions = model.predict()
+                model.save_model(experiment_path)
 
-                prediction_result = build_prediction_result(
-                    model_name=model_config.name,
-                    asset_symbol=asset.symbol,
-                    predictions=predictions,
-                    y_test=model.y_test, # type: ignore
-                    vol_index=vol_index,
-                )
+                # predictions = model.predict()
 
-                save_prediction_results_to_csv(
-                    experiment_path=experiment_path,
-                    model_name=model_config.name,
-                    asset_symbol=asset.symbol,
-                    predictions=predictions,
-                    y_test=model.y_test,  # type: ignore
-                    vol_index=vol_index,
-                )
+                # prediction_result = build_prediction_result(
+                #     model_name=model_config.name,
+                #     asset_symbol=asset.symbol,
+                #     predictions=predictions,
+                #     y_test=model.y_test, # type: ignore
+                #     vol_index=vol_index,
+                # )
 
-                prediction_results_by_model[model_config.name] = prediction_result
+                # save_prediction_results_to_csv(
+                #     experiment_path=experiment_path,
+                #     model_name=model_config.name,
+                #     asset_symbol=asset.symbol,
+                #     predictions=predictions,
+                #     y_test=model.y_test,  # type: ignore
+                #     vol_index=vol_index,
+                # )
 
-                y_true_series = pd.Series(
-                    data=[row.real_value for row in prediction_result.rows],
-                    index=[row.timestamp for row in prediction_result.rows],
-                    dtype=float,
-                )
-                y_pred_series = pd.Series(
-                    data=[row.predicted_value for row in prediction_result.rows],
-                    index=[row.timestamp for row in prediction_result.rows],
-                    dtype=float,
-                )
+                # prediction_results_by_model[model_config.name] = prediction_result
 
-                eval_result = Evaluator().evaluate(
-                    model_name=model_config.name,
-                    asset=asset.symbol,
-                    y_true=y_true_series,
-                    y_pred=y_pred_series,
-                )
-                Evaluator.save_evaluation_results(experiment_path, eval_result)
-                evaluation_results_by_model[model_config.name] = eval_result
+                # y_true_series = pd.Series(
+                #     data=[row.real_value for row in prediction_result.rows],
+                #     index=[row.timestamp for row in prediction_result.rows],
+                #     dtype=float,
+                # )
+                # y_pred_series = pd.Series(
+                #     data=[row.predicted_value for row in prediction_result.rows],
+                #     index=[row.timestamp for row in prediction_result.rows],
+                #     dtype=float,
+                # )
 
-                save_forecast_plot(prediction_result, experiment_path)
+                # eval_result = Evaluator().evaluate(
+                #     model_name=model_config.name,
+                #     asset=asset.symbol,
+                #     y_true=y_true_series,
+                #     y_pred=y_pred_series,
+                # )
+                # Evaluator.save_evaluation_results(experiment_path, eval_result)
+                # evaluation_results_by_model[model_config.name] = eval_result
 
-                logger.info(
-                    f"[{model_config.name}] RMSE={eval_result.rmse:.6f}  MAE={eval_result.mae:.6f}"
-                )
+                # save_forecast_plot(prediction_result, experiment_path)
+
+                # logger.info(
+                #     f"[{model_config.name}] RMSE={eval_result.rmse:.6f}  MAE={eval_result.mae:.6f}"
+                # )
 
             # Comparar cada challenger contra el baseline GARCH
-            if baseline_model_name in evaluation_results_by_model:
-                baseline_eval = evaluation_results_by_model[baseline_model_name]
-                baseline_pred = prediction_results_by_model[baseline_model_name]
-                baseline_y_true = pd.Series(
-                    data=[row.real_value for row in baseline_pred.rows],
-                    index=[row.timestamp for row in baseline_pred.rows],
-                    dtype=float,
-                )
+            # if baseline_model_name in evaluation_results_by_model:
+            #     baseline_eval = evaluation_results_by_model[baseline_model_name]
+            #     baseline_pred = prediction_results_by_model[baseline_model_name]
+            #     baseline_y_true = pd.Series(
+            #         data=[row.real_value for row in baseline_pred.rows],
+            #         index=[row.timestamp for row in baseline_pred.rows],
+            #         dtype=float,
+            #     )
 
-                for model_name, challenger_eval in evaluation_results_by_model.items():
-                    if model_name == baseline_model_name:
-                        continue
+            #     for model_name, challenger_eval in evaluation_results_by_model.items():
+            #         if model_name == baseline_model_name:
+            #             continue
 
-                    challenger_pred = prediction_results_by_model[model_name]
+            #         challenger_pred = prediction_results_by_model[model_name]
 
-                    # Alinear indices para el test de Diebold-Mariano
-                    common_index = baseline_y_true.index.intersection(
-                        pd.Index([row.timestamp for row in challenger_pred.rows])
-                    )
-                    y_true_aligned = baseline_y_true.loc[common_index]
-                    pred_baseline_aligned = pd.Series(
-                        data=[row.predicted_value for row in baseline_pred.rows],
-                        index=[row.timestamp for row in baseline_pred.rows],
-                        dtype=float,
-                    ).loc[common_index]
-                    pred_challenger_aligned = pd.Series(
-                        data=[row.predicted_value for row in challenger_pred.rows],
-                        index=[row.timestamp for row in challenger_pred.rows],
-                        dtype=float,
-                    ).reindex(common_index)
+            #         # Alinear indices para el test de Diebold-Mariano
+            #         common_index = baseline_y_true.index.intersection(
+            #             pd.Index([row.timestamp for row in challenger_pred.rows])
+            #         )
+            #         y_true_aligned = baseline_y_true.loc[common_index]
+            #         pred_baseline_aligned = pd.Series(
+            #             data=[row.predicted_value for row in baseline_pred.rows],
+            #             index=[row.timestamp for row in baseline_pred.rows],
+            #             dtype=float,
+            #         ).loc[common_index]
+            #         pred_challenger_aligned = pd.Series(
+            #             data=[row.predicted_value for row in challenger_pred.rows],
+            #             index=[row.timestamp for row in challenger_pred.rows],
+            #             dtype=float,
+            #         ).reindex(common_index)
 
-                    comparison = ModelComparator().compare(
-                        baseline=baseline_eval,
-                        challenger=challenger_eval,
-                        y_pred_baseline=pred_baseline_aligned,
-                        y_pred_challenger=pred_challenger_aligned,
-                        y_true=y_true_aligned,
-                    )
-                    ModelComparator.save_comparison_results(experiment_path, comparison)
-                    logger.info(
-                        f"Comparacion {baseline_model_name} vs {model_name}: "
-                        f"DM={comparison.dm_statistic:.4f}  p={comparison.dm_p_value:.4f}"
-                    )
+            #         comparison = ModelComparator().compare(
+            #             baseline=baseline_eval,
+            #             challenger=challenger_eval,
+            #             y_pred_baseline=pred_baseline_aligned,
+            #             y_pred_challenger=pred_challenger_aligned,
+            #             y_true=y_true_aligned,
+            #         )
+            #         ModelComparator.save_comparison_results(experiment_path, comparison)
+            #         logger.info(
+            #             f"Comparacion {baseline_model_name} vs {model_name}: "
+            #             f"DM={comparison.dm_statistic:.4f}  p={comparison.dm_p_value:.4f}"
+            #         )
 
         except DataLoaderException as e:
             logger.error(f"Data loading error for asset {asset.symbol}: {e}")

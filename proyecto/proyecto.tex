@@ -80,7 +80,7 @@ Medellín, Colombia \\
 \section*{Resumen}
 \addcontentsline{toc}{section}{Resumen}
 
-Este trabajo evaluó y comparó el desempeño de tres metodologías para el pronóstico de la volatilidad en series financieras intradía: el modelo GARCH, Heterocedasticidad Condicional Autorregresiva, como representante de los enfoques estadísticos clásicos, y los modelos CEEMDAN-LSTM, Descomposición Empírica de Modos en Conjunto Completa con Ruido Adaptativo combinada con \textit{Long Short-Term Memory}, y PSOQRNN, Red Neuronal Recurrente optimizada por Enjambre de Partículas en su versión cuantílica, como representantes de los enfoques de aprendizaje profundo e híbridos. El estudio se realizó sobre seis activos financieros de distintas clases: Bitcoin (BTC-USD), Ethereum (ETH-USD), oro (GC=F), el par de divisas EUR/USD, y los índices bursátiles S\&P\,500 y NASDAQ. Con datos intradía a 15 minutos acumulados entre febrero y julio de 2026. Los resultados muestran que el PSOQRNN  supera consistentemente al GARCH en todos los activos evaluados, con reducciones de RMSE, Raíz del Error Cuadrático Medio, entre el 83\,\% y el 96\,\%. El CEEMDAN-LSTM también mejora al GARCH en todos los casos, con reducciones entre el 37\,\% y el 95\,\%. En todos los escenarios, el test de Diebold--Mariano, prueba estadística para comparar la precisión de dos modelos de pronóstico, confirma la significancia estadística de estas diferencias ($p \ll 0.001$), evidenciando la superioridad de los enfoques no lineales basados en redes neuronales para el modelamiento de la volatilidad en mercados financieros de alta frecuencia.
+Este trabajo evaluó y comparó el desempeño de tres metodologías para el pronóstico de la volatilidad en series financieras intradía: el modelo GARCH, Heterocedasticidad Condicional Autorregresiva, como representante de los enfoques estadísticos clásicos, y los modelos CEEMDAN-LSTM, Descomposición Empírica de Modos en Conjunto Completa con Ruido Adaptativo combinada con \textit{Long Short-Term Memory}, y PSOQRNN, Red Neuronal Recurrente optimizada por Enjambre de Partículas en su versión cuantílica, como representantes de los enfoques de aprendizaje profundo e híbridos. El estudio se realizó sobre seis activos financieros de distintas clases: Bitcoin (BTC-USD), Ethereum (ETH-USD), oro (GC=F), el par de divisas EUR/USD, y los índices bursátiles S\&P\,500 y NASDAQ. Con datos intradía a 15 minutos acumulados entre febrero y julio de 2026. Los resultados muestran que el PSOQRNN  supera consistentemente al GARCH en todos los activos evaluados, con reducciones de RMSE, Raíz del Error Cuadrático Medio, entre el 83\% y el 96\%. El CEEMDAN-LSTM también mejora al GARCH en todos los casos, con reducciones entre el 37\% y el 95\%. En todos los escenarios, el test de Diebold--Mariano, prueba estadística para comparar la precisión de dos modelos de pronóstico, confirma la significancia estadística de estas diferencias ($p \ll 0.001$), evidenciando la superioridad de los enfoques no lineales basados en redes neuronales para el modelamiento de la volatilidad en mercados financieros de alta frecuencia.
 
 \begin{sloppypar}
 \textbf{Palabras clave:} Volatilidad financiera intradía, GARCH, CEEMDAN-LSTM, PSOQRNN, series temporales financieras, test de Diebold--Mariano.
@@ -289,7 +289,7 @@ Previo al ajuste de los modelos de volatilidad, se construyeron las series deriv
     \end{equation}
     donde la ventana de 252 períodos corresponde, para datos con frecuencia de 15 minutos, a aproximadamente un día de operación continua. Esta serie de volatilidad realizada constituye la variable objetivo de los tres modelos evaluados. El factor de anualizado $\sqrt{252}$ se aplica como convención de escalado estándar; al emplearse de forma uniforme en todos los activos no afecta la comparación relativa entre modelos.
 
-    \item \textbf{Partición entrenamiento-prueba.} Las series preprocesadas se dividieron cronológicamente en un 80\,\% para entrenamiento y un 20\,\% para prueba, preservando el orden temporal de las observaciones. Esta partición se realizó sobre las series de volatilidad realizada ya construidas, de modo que cada modelo fue evaluado sobre el mismo horizonte de prueba.
+    \item \textbf{Partición entrenamiento-prueba.} Las series preprocesadas se dividieron cronológicamente en un 80\% para entrenamiento y un 20\% para prueba, preservando el orden temporal de las observaciones. Esta partición se realizó sobre las series de volatilidad realizada ya construidas, de modo que cada modelo fue evaluado sobre el mismo horizonte de prueba.
 \end{itemize}
 
 Es importante señalar que el cálculo de $\bar{r}$ empleado para construir la serie de innovaciones $\varepsilon_t$ se realiza sobre la serie completa de retornos, es decir, antes de la partición entrenamiento-prueba y no exclusivamente sobre el tramo de entrenamiento. Esto introduce una fuga de información (\textit{look-ahead bias}) hacia el conjunto de prueba, ya que $\bar{r}$ incorpora información de retornos que, en un escenario de pronóstico real, todavía no habrían ocurrido en el momento de la predicción. Esta práctica reproduce la definición original de $\varepsilon_t$ de \citet{pradeepkumar2017forecasting} (Ecuación 10 del artículo original), donde $\bar r$ se define igualmente como la media incondicional del período completo, sin distinguir entre muestra de entrenamiento y de prueba. Al tratarse de una constante escalar que se resta de manera uniforme sobre toda la serie, su efecto sobre el ordenamiento relativo entre modelos es limitado; no obstante, los resultados de PSOQRNN y de los demás modelos que consumen esta serie de innovaciones deben interpretarse, en este aspecto puntual, como una evaluación pseudo-fuera-de-muestra, lo cual se reconoce como una limitación metodológica heredada de la propuesta original más que como un hallazgo del presente trabajo.
@@ -386,7 +386,7 @@ Una limitación del modelo GARCH$(p,q)$ estándar es que asigna el mismo peso $\
 donde $\mathbb{1}\{\varepsilon_{t-i}<0\}$ es una función indicadora que toma el valor $1$ cuando el choque pasado fue negativo y $0$ en caso contrario, y $\gamma_i \geq 0$ cuantifica el incremento adicional en la varianza condicional atribuible específicamente a choques negativos. Cuando $\gamma_i = 0$ el modelo se reduce al GARCH estándar; cuando $\gamma_i > 0$, un choque negativo de magnitud $|\varepsilon_{t-i}|$ incrementa la varianza condicional más que un choque positivo de la misma magnitud.
 
 
-\subsection{Modelos tradicionales: GARCH}
+\subsection{Detalles de implementación y estimación}
 
 La implementación retoma la especificación GARCH$(p,q)$ presentada en la sección anterior, ajustada mediante la librería de Python \texttt{arch}, que provee la rutina de estimación por máxima verosimilitud y el cómputo de la volatilidad condicional. El ajuste de la media y la selección del orden autorregresivo se apoyan en la librería \texttt{pmdarima}, mientras que el manejo numérico de las series se realiza con \texttt{numpy} y \texttt{pandas}.
 
@@ -401,7 +401,82 @@ La implementación retoma la especificación GARCH$(p,q)$ presentada en la secci
 \subsection{Especificación GARCH por activo}
 \label{sec:garch-por-activo}
 
-\textcolor{orange}{[Apartado por construir: se documentará aquí, para cada uno de los seis activos, la configuración GARCH finalmente seleccionada por el procedimiento de la sección anterior --- orden $(p,q)$ u orden GJR-GARCH, distribución de innovaciones y AIC obtenido --- una vez se consolide dicha información.]}
+La Tabla~\ref{tab:garch-spec} resume, para cada uno de los seis activos, la configuración GARCH finalmente seleccionada por el procedimiento de grid search descrito en la sección anterior: el orden del modelo --- GARCH$(p,q)$ estándar o GJR-GARCH$(p,o,q)$ cuando el término de asimetría resultó ganador ---, la distribución de innovaciones, y los criterios de información obtenidos sobre el conjunto de entrenamiento.
+
+\begin{table}[H]
+\centering
+\caption{Especificación GARCH seleccionada por activo (menor AIC entre las siete configuraciones evaluadas).}
+\label{tab:garch-spec}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llllll}
+\hline
+\textbf{Activo} & \textbf{Especificación} & \textbf{Distribución} & \textbf{AIC} & \textbf{BIC} & \textbf{Log-verosimilitud} \\
+\hline
+BTC-USD    & GARCH$(2,2)$       & $t$ de Student              & $-4\,733{,}42$  & $-4\,689{,}40$  & $2\,372{,}71$ \\
+ETH-USD    & GARCH$(1,2)$       & $t$ de Student              & $464{,}60$      & $501{,}28$      & $-227{,}30$ \\
+EUR/USD    & GJR-GARCH$(1,1,1)$ & $t$ de Student              & $-31\,621{,}82$ & $-31\,586{,}83$ & $15\,815{,}91$ \\
+Oro (GC=F) & GARCH$(1,1)$       & $t$ de Student              & $-8\,181{,}71$  & $-8\,153{,}68$  & $4\,094{,}86$ \\
+S\&P\,500  & GJR-GARCH$(1,1,1)$ & $t$ asimétrica (\textit{skewed-t}) & $-2\,652{,}77$ & $-2\,618{,}78$ & $1\,332{,}39$ \\
+NASDAQ     & GJR-GARCH$(1,1,1)$ & $t$ asimétrica (\textit{skewed-t}) & $-1\,345{,}77$ & $-1\,311{,}71$ & $678{,}88$ \\
+\hline
+\end{tabular}%
+}
+\end{table}
+
+Dos patrones se destacan en la Tabla~\ref{tab:garch-spec}. Primero, en ninguno de los seis activos el AIC favoreció la distribución Normal de innovaciones: los seis modelos seleccionados usan $t$ de Student o su variante asimétrica, lo cual es consistente con las colas pesadas típicas de los retornos financieros intradía. Segundo, el término de asimetría GJR resultó ganador en la mitad de los activos --- EUR/USD y los dos índices bursátiles ---, mientras que Bitcoin, Ethereum y el oro se ajustaron mejor con la especificación simétrica estándar; sin embargo, como se observa en la Tabla~\ref{tab:garch-coeficientes}, el coeficiente de asimetría $\gamma_1$ solo resulta estadísticamente significativo ($p<0{,}001$) en S\&P\,500 y NASDAQ, no así en EUR/USD ($p=0{,}273$), donde su inclusión mejoró el AIC pero sin evidencia individual robusta de efecto apalancamiento.
+
+A modo de referencia adicional, y sin que ello incida en las conclusiones del estudio, la Tabla~\ref{tab:garch-coeficientes} reporta el detalle completo de los coeficientes estimados por activo --- valor, error estándar y $p$-valor de significancia individual --- para las variables del modelo de varianza condicional ($\omega$, $\alpha_i$, $\gamma_1$, $\beta_j$) y de la distribución de innovaciones ($\nu$ para $t$ de Student; $\eta$ y $\lambda$ para la $t$ asimétrica).
+
+\begin{table}[H]
+\centering
+\caption{Coeficientes estimados del modelo GARCH por activo (error estándar y $p$-valor del test de significancia individual).}
+\label{tab:garch-coeficientes}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llrrr}
+\hline
+\textbf{Activo} & \textbf{Parámetro} & \textbf{Coeficiente} & \textbf{Error estándar} & \textbf{$p$-valor} \\
+\hline
+\multirow{6}{*}{BTC-USD} & $\omega$ & $0{,}0013$ & $0{,}0016$ & $0{,}442$ \\
+ & $\alpha_1$ & $0{,}1752$ & $0{,}0730$ & $0{,}016$ \\
+ & $\alpha_2$ & $1{,}92\times10^{-6}$ & $0{,}2606$ & $1{,}000$ \\
+ & $\beta_1$ & $0{,}5469$ & $1{,}1657$ & $0{,}639$ \\
+ & $\beta_2$ & $0{,}2779$ & $0{,}9689$ & $0{,}774$ \\
+ & $\nu$ & $3{,}7543$ & $0{,}1356$ & $9{,}65\times10^{-169}$ \\
+\hline
+\multirow{5}{*}{ETH-USD} & $\omega$ & $0{,}0021$ & $5{,}07\times10^{-4}$ & $4{,}33\times10^{-5}$ \\
+ & $\alpha_1$ & $0{,}1675$ & $0{,}0172$ & $2{,}11\times10^{-22}$ \\
+ & $\beta_1$ & $0{,}4934$ & $0{,}0449$ & $4{,}20\times10^{-28}$ \\
+ & $\beta_2$ & $0{,}3391$ & $0{,}0443$ & $1{,}94\times10^{-14}$ \\
+ & $\nu$ & $3{,}4107$ & $0{,}0994$ & $8{,}96\times10^{-258}$ \\
+\hline
+\multirow{5}{*}{EUR/USD} & $\omega$ & $3{,}66\times10^{-5}$ & $5{,}36\times10^{-6}$ & $8{,}84\times10^{-12}$ \\
+ & $\alpha_1$ & $0{,}0500$ & $0{,}0118$ & $2{,}41\times10^{-5}$ \\
+ & $\gamma_1$ & $0{,}0100$ & $0{,}0091$ & $0{,}273$ \\
+ & $\beta_1$ & $0{,}9250$ & $0{,}0076$ & $\approx 0$ \\
+ & $\nu$ & $4{,}1879$ & $0{,}5620$ & $9{,}25\times10^{-14}$ \\
+\hline
+\multirow{4}{*}{Oro (GC=F)} & $\omega$ & $0{,}0041$ & $0{,}0014$ & $0{,}003$ \\
+ & $\alpha_1$ & $0{,}2000$ & $0{,}0170$ & $4{,}08\times10^{-32}$ \\
+ & $\beta_1$ & $0{,}7000$ & $0{,}0540$ & $1{,}91\times10^{-38}$ \\
+ & $\nu$ & $4{,}1930$ & $0{,}4469$ & $6{,}48\times10^{-21}$ \\
+\hline
+\multirow{6}{*}{S\&P\,500} & $\omega$ & $0{,}0051$ & $0{,}0014$ & $4{,}20\times10^{-4}$ \\
+ & $\alpha_1$ & $0{,}1170$ & $0{,}0501$ & $0{,}020$ \\
+ & $\gamma_1$ & $0{,}4713$ & $0{,}1269$ & $2{,}04\times10^{-4}$ \\
+ & $\beta_1$ & $0{,}6474$ & $0{,}0563$ & $1{,}38\times10^{-30}$ \\
+ & $\eta$ & $2{,}6519$ & $0{,}1601$ & $1{,}18\times10^{-61}$ \\
+ & $\lambda$ & $-0{,}0506$ & $0{,}0232$ & $0{,}029$ \\
+\hline
+\multirow{6}{*}{NASDAQ} & $\omega$ & $0{,}0129$ & $0{,}0033$ & $1{,}11\times10^{-4}$ \\
+ & $\alpha_1$ & $0{,}1231$ & $0{,}0518$ & $0{,}018$ \\
+ & $\gamma_1$ & $0{,}4449$ & $0{,}1275$ & $4{,}82\times10^{-4}$ \\
+ & $\beta_1$ & $0{,}5828$ & $0{,}0513$ & $6{,}16\times10^{-30}$ \\
+ & $\eta$ & $2{,}6569$ & $0{,}1768$ & $4{,}68\times10^{-51}$ \\
+ & $\lambda$ & $-0{,}0345$ & $0{,}0232$ & $0{,}138$ \\
+\hline
+\end{tabular}%
+}
+\end{table}
 
 
 \section{Modelo CEEMDAN-LSTM}
@@ -486,7 +561,7 @@ El método CEEMDAN-LSTM propone entrenar redes neuronales LSTM independientes pa
 donde $\widehat{IMF}_i(t)$ representa la predicción del $i$-ésimo modo intrínseco e $\widehat{R}_n(t)$ corresponde a la predicción del residuo. La suma de estas predicciones permite recuperar una estimación $\hat{Y}(t)$ de la señal original en el dominio temporal.
 
 
-\subsection{Modelos de redes neuronales: CEEMDAN-LSTM}
+\subsection{Detalles de implementación y entrenamiento}
 
 La implementación se apoya en tres librerías principales de Python: \texttt{PyEMD} para el cálculo de la descomposición CEEMDAN, \texttt{PyTorch} para la definición y el entrenamiento de la red LSTM, y \texttt{scikit-learn} para la normalización de los datos. A continuación se detallan las decisiones de construcción del conjunto de datos y de la arquitectura.
 
@@ -570,7 +645,7 @@ L_{\tau}(y, \hat{y}) =
 
 donde $y$ representa el valor real, $\hat{y}$ la predicción del modelo, y $\tau \in (0,1)$ es el cuantil de interés. Esta función penaliza de manera asimétrica los errores de predicción, lo que permite que el modelo se ajuste directamente a la estimación del cuantil especificado en lugar del valor esperado.
 
-\subsection{Modelos de redes neuronales: PSOQRNN}
+\subsection{Detalles de implementación y entrenamiento}
 
 El modelo PSOQRNN integra una Red Neuronal de Regresión Cuantílica (QRNN, \textit{Quantile Regression Neural Network}, \citealt{taylor2000qrnn}) con el algoritmo de Optimización por Enjambre de Partículas (PSO, \textit{Particle Swarm Optimization}, \citealt{kennedy1995}) como método de entrenamiento, siguiendo la propuesta de \citet{pradeepkumar2017forecasting}. La arquitectura QRNN estima directamente el cuantil condicional de la volatilidad, mientras que el PSO sustituye a la retropropagación en la búsqueda de los pesos óptimos de la red con el objetivo de evitar la convergencia a mínimos locales. La red se implementó como un módulo de \texttt{PyTorch}, mientras que el algoritmo PSO se implementó de manera propia (sin recurrir a una librería especializada de metaheurísticas), operando directamente sobre el vector de pesos de la red mediante \texttt{NumPy}.
 
@@ -694,14 +769,14 @@ El PSOQRNN logra, con diferencia, el mejor ajuste visual de los tres modelos: co
 \textbf{Modelo} & \textbf{MAE} & \textbf{RMSE} & \textbf{Reducción RMSE} & \textbf{DM $p$-valor} \\
 \hline
 GARCH        & $1{,}42\times10^{-2}$ & $2{,}00\times10^{-2}$ & --- & --- \\
-CEEMDAN-LSTM & $5{,}15\times10^{-3}$ & $6{,}21\times10^{-3}$ & $68{,}9\,\%$ & $9{,}26\times10^{-46}$ \\
-PSOQRNN      & $\mathbf{1{,}23\times10^{-3}}$ & $\mathbf{1{,}74\times10^{-3}}$ & $\mathbf{91{,}3\,\%}$ & $1{,}25\times10^{-53}$ \\
+CEEMDAN-LSTM & $5{,}15\times10^{-3}$ & $6{,}21\times10^{-3}$ & $68{,}9\%$ & $9{,}26\times10^{-46}$ \\
+PSOQRNN      & $\mathbf{1{,}23\times10^{-3}}$ & $\mathbf{1{,}74\times10^{-3}}$ & $\mathbf{91{,}3\%}$ & $1{,}25\times10^{-53}$ \\
 \hline
 \end{tabular}%
 }
 \end{table}
 
-La lectura numérica y la lectura visual coinciden plenamente en Bitcoin: el PSOQRNN es el modelo superior tanto en las métricas de error como en la fidelidad de la trayectoria predicha, con una reducción de RMSE del $91{,}3\,\%$ frente al GARCH, estadísticamente significativa según el test DM ($p \ll 0.001$). El CEEMDAN-LSTM ocupa la posición intermedia, con mejoras también significativas frente a la línea base ($68{,}9\,\%$ de reducción en RMSE) pero claramente inferiores a las del PSOQRNN, en línea con el rezago y la subestimación de picos observados en su gráfico. El GARCH, por su parte, es el único de los tres modelos cuyo error visual (sobreestimación sistemática con picos desproporcionados) se refleja directamente en el peor desempeño numérico. El orden de desempeño resultante es: PSOQRNN $>$ CEEMDAN-LSTM $>$ GARCH, tanto en términos gráficos como estadísticos.
+La lectura numérica y la lectura visual coinciden plenamente en Bitcoin: el PSOQRNN es el modelo superior tanto en las métricas de error como en la fidelidad de la trayectoria predicha, con una reducción de RMSE del $91{,}3\%$ frente al GARCH, estadísticamente significativa según el test DM ($p \ll 0.001$). El CEEMDAN-LSTM ocupa la posición intermedia, con mejoras también significativas frente a la línea base ($68{,}9\%$ de reducción en RMSE) pero claramente inferiores a las del PSOQRNN, en línea con el rezago y la subestimación de picos observados en su gráfico. El GARCH, por su parte, es el único de los tres modelos cuyo error visual (sobreestimación sistemática con picos desproporcionados) se refleja directamente en el peor desempeño numérico. El orden de desempeño resultante es: PSOQRNN $>$ CEEMDAN-LSTM $>$ GARCH, tanto en términos gráficos como estadísticos.
 
 \subsection{Ethereum (ETH-USD)}
 
@@ -744,14 +819,14 @@ El PSOQRNN mantiene, también en Ethereum, la mejor capacidad de seguimiento de 
 \textbf{Modelo} & \textbf{MAE} & \textbf{RMSE} & \textbf{Reducción RMSE} & \textbf{DM $p$-valor} \\
 \hline
 GARCH        & $1{,}84\times10^{-2}$ & $2{,}52\times10^{-2}$ & --- & --- \\
-CEEMDAN-LSTM & $1{,}41\times10^{-2}$ & $1{,}58\times10^{-2}$ & $37{,}3\,\%$ & $2{,}26\times10^{-33}$ \\
-PSOQRNN      & $\mathbf{1{,}11\times10^{-3}}$ & $\mathbf{1{,}68\times10^{-3}}$ & $\mathbf{93{,}3\,\%}$ & $1{,}02\times10^{-78}$ \\
+CEEMDAN-LSTM & $1{,}41\times10^{-2}$ & $1{,}58\times10^{-2}$ & $37{,}3\%$ & $2{,}26\times10^{-33}$ \\
+PSOQRNN      & $\mathbf{1{,}11\times10^{-3}}$ & $\mathbf{1{,}68\times10^{-3}}$ & $\mathbf{93{,}3\%}$ & $1{,}02\times10^{-78}$ \\
 \hline
 \end{tabular}%
 }
 \end{table}
 
-En Ethereum, al igual que en Bitcoin, la evidencia numérica y la visual apuntan en la misma dirección. El PSOQRNN vuelve a ser el modelo superior, con una reducción de RMSE del $93{,}3\,\%$ frente al GARCH ($p$-valor DM $= 1{,}02 \times 10^{-78}$, el más pequeño de los seis activos, lo que indica la diferencia de precisión predictiva más contundente del estudio). El CEEMDAN-LSTM también supera al GARCH de forma estadísticamente significativa, pero con un margen de mejora ($37{,}3\,\%$) considerablemente menor que en Bitcoin ($68{,}9\,\%$), consistente con la subestimación progresiva observada en su gráfico durante la segunda mitad del período de prueba. El GARCH conserva el peor desempeño, en línea con la sobreestimación sistemática y las oscilaciones espurias documentadas en su figura. El orden de desempeño es: PSOQRNN $>$ CEEMDAN-LSTM $>$ GARCH.
+En Ethereum, al igual que en Bitcoin, la evidencia numérica y la visual apuntan en la misma dirección. El PSOQRNN vuelve a ser el modelo superior, con una reducción de RMSE del $93{,}3\%$ frente al GARCH ($p$-valor DM $= 1{,}02 \times 10^{-78}$, el más pequeño de los seis activos, lo que indica la diferencia de precisión predictiva más contundente del estudio). El CEEMDAN-LSTM también supera al GARCH de forma estadísticamente significativa, pero con un margen de mejora ($37{,}3\%$) considerablemente menor que en Bitcoin ($68{,}9\%$), consistente con la subestimación progresiva observada en su gráfico durante la segunda mitad del período de prueba. El GARCH conserva el peor desempeño, en línea con la sobreestimación sistemática y las oscilaciones espurias documentadas en su figura. El orden de desempeño es: PSOQRNN $>$ CEEMDAN-LSTM $>$ GARCH.
 
 \subsection{Euro/Dólar (EUR/USD)}
 
@@ -794,14 +869,14 @@ El PSOQRNN, en cambio, reproduce con fidelidad el patrón escalonado de la serie
 \textbf{Modelo} & \textbf{MAE} & \textbf{RMSE} & \textbf{Reducción RMSE} & \textbf{DM $p$-valor} \\
 \hline
 GARCH        & $1{,}27\times10^{-3}$ & $1{,}92\times10^{-3}$ & --- & --- \\
-CEEMDAN-LSTM & $1{,}00\times10^{-3}$ & $1{,}15\times10^{-3}$ & $40{,}1\,\%$ & $6{,}90\times10^{-16}$ \\
-PSOQRNN      & $\mathbf{2{,}12\times10^{-4}}$ & $\mathbf{3{,}27\times10^{-4}}$ & $\mathbf{83{,}0\,\%}$ & $9{,}96\times10^{-36}$ \\
+CEEMDAN-LSTM & $1{,}00\times10^{-3}$ & $1{,}15\times10^{-3}$ & $40{,}1\%$ & $6{,}90\times10^{-16}$ \\
+PSOQRNN      & $\mathbf{2{,}12\times10^{-4}}$ & $\mathbf{3{,}27\times10^{-4}}$ & $\mathbf{83{,}0\%}$ & $9{,}96\times10^{-36}$ \\
 \hline
 \end{tabular}%
 }
 \end{table}
 
-Es importante ser precisos sobre lo que dicen y lo que no dicen las cifras de la Tabla~\ref{tab:eurusd-metrics}. El resultado del test de Diebold--Mariano es correcto y no se pone en duda: el CEEMDAN-LSTM tiene, en efecto, un error cuadrático medio significativamente menor que el GARCH en esta muestra ($p = 6{,}90\times10^{-16}$), con una reducción de RMSE del $40{,}1\,\%$. Lo que la métrica no captura es \emph{cómo} se obtiene esa reducción: en un activo de volatilidad baja y relativamente estable como el EUR/USD, una predicción casi constante igual al nivel medio puede bastar para superar a un GARCH ruidoso y sobrerreactivo en términos de error promedio, sin que ello implique que el modelo haya aprendido a anticipar los cambios de régimen de la serie. Por esta razón, para efectos de la interpretación cualitativa del desempeño --- es decir, qué tan útil sería cada modelo para anticipar un cambio real en la volatilidad del par --- el orden de desempeño en EUR/USD se reporta como PSOQRNN $>$ GARCH (por inspección gráfica) $>$ CEEMDAN-LSTM, sin que esto contradiga ni deje de lado la Tabla~\ref{tab:eurusd-metrics}: ambas lecturas, la cuantitativa y la gráfica, se presentan explícitamente porque responden preguntas distintas y ninguna de las dos sustituye a la otra.
+Es importante ser precisos sobre lo que dicen y lo que no dicen las cifras de la Tabla~\ref{tab:eurusd-metrics}. El resultado del test de Diebold--Mariano es correcto y no se pone en duda: el CEEMDAN-LSTM tiene, en efecto, un error cuadrático medio significativamente menor que el GARCH en esta muestra ($p = 6{,}90\times10^{-16}$), con una reducción de RMSE del $40{,}1\%$. Lo que la métrica no captura es \emph{cómo} se obtiene esa reducción: en un activo de volatilidad baja y relativamente estable como el EUR/USD, una predicción casi constante igual al nivel medio puede bastar para superar a un GARCH ruidoso y sobrerreactivo en términos de error promedio, sin que ello implique que el modelo haya aprendido a anticipar los cambios de régimen de la serie. Por esta razón, para efectos de la interpretación cualitativa del desempeño --- es decir, qué tan útil sería cada modelo para anticipar un cambio real en la volatilidad del par --- el orden de desempeño en EUR/USD se reporta como PSOQRNN $>$ GARCH (por inspección gráfica) $>$ CEEMDAN-LSTM, sin que esto contradiga ni deje de lado la Tabla~\ref{tab:eurusd-metrics}: ambas lecturas, la cuantitativa y la gráfica, se presentan explícitamente porque responden preguntas distintas y ninguna de las dos sustituye a la otra.
 
 \subsection{Oro (GC=F)}
 
@@ -844,14 +919,14 @@ El PSOQRNN, en contraste, sigue de cerca la trayectoria real del oro (Figura~\re
 \textbf{Modelo} & \textbf{MAE} & \textbf{RMSE} & \textbf{Reducción RMSE} & \textbf{DM $p$-valor} \\
 \hline
 GARCH        & $7{,}59\times10^{-3}$ & $1{,}21\times10^{-2}$ & --- & --- \\
-CEEMDAN-LSTM & $4{,}48\times10^{-3}$ & $5{,}63\times10^{-3}$ & $53{,}4\,\%$ & $2{,}10\times10^{-12}$ \\
-PSOQRNN      & $\mathbf{3{,}69\times10^{-4}}$ & $\mathbf{6{,}89\times10^{-4}}$ & $\mathbf{94{,}3\,\%}$ & $1{,}93\times10^{-19}$ \\
+CEEMDAN-LSTM & $4{,}48\times10^{-3}$ & $5{,}63\times10^{-3}$ & $53{,}4\%$ & $2{,}10\times10^{-12}$ \\
+PSOQRNN      & $\mathbf{3{,}69\times10^{-4}}$ & $\mathbf{6{,}89\times10^{-4}}$ & $\mathbf{94{,}3\%}$ & $1{,}93\times10^{-19}$ \\
 \hline
 \end{tabular}%
 }
 \end{table}
 
-Como en EUR/USD, la Tabla~\ref{tab:gold-metrics} es numéricamente correcta y no se cuestiona: el CEEMDAN-LSTM reduce el RMSE del GARCH en un $53{,}4\,\%$, con significancia estadística confirmada por el test DM ($p = 2{,}10\times10^{-12}$). Pero, igual que antes, esa reducción se explica en buena medida porque la volatilidad del oro pasa la mayor parte del tiempo relativamente cerca de su nivel medio, de modo que una predicción casi plana --- que no responde a la información de cada instante --- ya obtiene un error promedio menor que el de un GARCH ruidoso, sin que ello implique capacidad predictiva real sobre los cambios de la serie. Por esta razón, y sin que se contradiga en ningún momento el resultado de la Tabla~\ref{tab:gold-metrics}, el orden de desempeño en el oro se reporta en su dimensión gráfica como PSOQRNN $>$ GARCH (por inspección gráfica) $>$ CEEMDAN-LSTM: el GARCH, pese a tener el peor error numérico, al menos reacciona --- aunque de forma excesiva y ruidosa --- a los cambios de la serie, mientras que el CEEMDAN-LSTM prácticamente no reacciona en absoluto.
+Como en EUR/USD, la Tabla~\ref{tab:gold-metrics} es numéricamente correcta y no se cuestiona: el CEEMDAN-LSTM reduce el RMSE del GARCH en un $53{,}4\%$, con significancia estadística confirmada por el test DM ($p = 2{,}10\times10^{-12}$). Pero, igual que antes, esa reducción se explica en buena medida porque la volatilidad del oro pasa la mayor parte del tiempo relativamente cerca de su nivel medio, de modo que una predicción casi plana --- que no responde a la información de cada instante --- ya obtiene un error promedio menor que el de un GARCH ruidoso, sin que ello implique capacidad predictiva real sobre los cambios de la serie. Por esta razón, y sin que se contradiga en ningún momento el resultado de la Tabla~\ref{tab:gold-metrics}, el orden de desempeño en el oro se reporta en su dimensión gráfica como PSOQRNN $>$ GARCH (por inspección gráfica) $>$ CEEMDAN-LSTM: el GARCH, pese a tener el peor error numérico, al menos reacciona --- aunque de forma excesiva y ruidosa --- a los cambios de la serie, mientras que el CEEMDAN-LSTM prácticamente no reacciona en absoluto.
 
 \subsection{S\&P\,500 (\^{}GSPC)}
 
@@ -894,14 +969,14 @@ El PSOQRNN reproduce con alta fidelidad la trayectoria completa del índice (Fig
 \textbf{Modelo} & \textbf{MAE} & \textbf{RMSE} & \textbf{Reducción RMSE} & \textbf{DM $p$-valor} \\
 \hline
 GARCH        & $1{,}36\times10^{-2}$ & $1{,}93\times10^{-2}$ & --- & --- \\
-CEEMDAN-LSTM & $1{,}65\times10^{-3}$ & $1{,}74\times10^{-3}$ & $91{,}0\,\%$ & $2{,}43\times10^{-10}$ \\
-PSOQRNN      & $\mathbf{6{,}12\times10^{-4}}$ & $\mathbf{9{,}82\times10^{-4}}$ & $\mathbf{94{,}9\,\%}$ & $1{,}51\times10^{-11}$ \\
+CEEMDAN-LSTM & $1{,}65\times10^{-3}$ & $1{,}74\times10^{-3}$ & $91{,}0\%$ & $2{,}43\times10^{-10}$ \\
+PSOQRNN      & $\mathbf{6{,}12\times10^{-4}}$ & $\mathbf{9{,}82\times10^{-4}}$ & $\mathbf{94{,}9\%}$ & $1{,}51\times10^{-11}$ \\
 \hline
 \end{tabular}%
 }
 \end{table}
 
-En el S\&P\,500, a diferencia de EUR/USD y el Oro, la lectura numérica y la lectura gráfica del CEEMDAN-LSTM son consistentes entre sí: su reducción de RMSE del $91{,}0\,\%$ frente al GARCH refleja un seguimiento genuino de la dinámica de la serie, no un simple aplanamiento hacia la media. El PSOQRNN conserva el mejor desempeño global, con una reducción de RMSE del $94{,}9\,\%$ y el ajuste visual más preciso de los tres modelos, aunque con menor holgura relativa sobre el CEEMDAN-LSTM que la observada en las criptomonedas. El orden de desempeño es: PSOQRNN $>$ CEEMDAN-LSTM $>$ GARCH.
+En el S\&P\,500, a diferencia de EUR/USD y el Oro, la lectura numérica y la lectura gráfica del CEEMDAN-LSTM son consistentes entre sí: su reducción de RMSE del $91{,}0\%$ frente al GARCH refleja un seguimiento genuino de la dinámica de la serie, no un simple aplanamiento hacia la media. El PSOQRNN conserva el mejor desempeño global, con una reducción de RMSE del $94{,}9\%$ y el ajuste visual más preciso de los tres modelos, aunque con menor holgura relativa sobre el CEEMDAN-LSTM que la observada en las criptomonedas. El orden de desempeño es: PSOQRNN $>$ CEEMDAN-LSTM $>$ GARCH.
 
 \subsection{NASDAQ (\^{}IXIC)}
 
@@ -944,18 +1019,18 @@ El PSOQRNN reproduce fielmente la trayectoria completa del índice (Figura~\ref{
 \textbf{Modelo} & \textbf{MAE} & \textbf{RMSE} & \textbf{Reducción RMSE} & \textbf{DM $p$-valor} \\
 \hline
 GARCH        & $1{,}77\times10^{-2}$ & $2{,}59\times10^{-2}$ & --- & --- \\
-CEEMDAN-LSTM & $1{,}00\times10^{-3}$ & $1{,}23\times10^{-3}$ & $95{,}3\,\%$ & $3{,}15\times10^{-9}$ \\
-PSOQRNN      & $\mathbf{6{,}99\times10^{-4}}$ & $\mathbf{9{,}95\times10^{-4}}$ & $\mathbf{96{,}2\,\%}$ & $1{,}09\times10^{-9}$ \\
+CEEMDAN-LSTM & $1{,}00\times10^{-3}$ & $1{,}23\times10^{-3}$ & $95{,}3\%$ & $3{,}15\times10^{-9}$ \\
+PSOQRNN      & $\mathbf{6{,}99\times10^{-4}}$ & $\mathbf{9{,}95\times10^{-4}}$ & $\mathbf{96{,}2\%}$ & $1{,}09\times10^{-9}$ \\
 \hline
 \end{tabular}%
 }
 \end{table}
 
-El NASDAQ es, junto con el S\&P\,500, uno de los activos donde el CEEMDAN-LSTM cierra la mayor parte de la brecha frente al PSOQRNN: su reducción de RMSE del $95{,}3\,\%$ frente al GARCH es la segunda mejor de todo el estudio, y --- a diferencia de EUR/USD y el Oro --- corresponde a un seguimiento visualmente genuino de la serie, no a una predicción plana. El PSOQRNN mantiene el primer lugar con una reducción de RMSE del $96{,}2\,\%$, pero la distancia relativa entre ambos modelos de redes neuronales es, en este activo, la más estrecha del estudio. El GARCH conserva el peor desempeño, en línea con la sobreestimación extrema documentada en su gráfico. El orden de desempeño es: PSOQRNN $>$ CEEMDAN-LSTM $>$ GARCH.
+El NASDAQ es, junto con el S\&P\,500, uno de los activos donde el CEEMDAN-LSTM cierra la mayor parte de la brecha frente al PSOQRNN: su reducción de RMSE del $95{,}3\%$ frente al GARCH es la segunda mejor de todo el estudio, y --- a diferencia de EUR/USD y el Oro --- corresponde a un seguimiento visualmente genuino de la serie, no a una predicción plana. El PSOQRNN mantiene el primer lugar con una reducción de RMSE del $96{,}2\%$, pero la distancia relativa entre ambos modelos de redes neuronales es, en este activo, la más estrecha del estudio. El GARCH conserva el peor desempeño, en línea con la sobreestimación extrema documentada en su gráfico. El orden de desempeño es: PSOQRNN $>$ CEEMDAN-LSTM $>$ GARCH.
 
 \subsection{Resumen comparativo}
 
-La Tabla~\ref{tab:resumen_metricas} consolida los resultados de MAE y RMSE de los tres modelos para todos los activos evaluados, junto con los $p$-valores del test de Diebold--Mariano de cada modelo \textit{challenger} respecto al GARCH. El resultado más destacado es la consistencia del PSOQRNN como modelo superior en los seis activos, con reducciones de RMSE respecto al GARCH que oscilan entre el 83\,\% (EUR/USD) y el 96\,\% (NASDAQ). El CEEMDAN-LSTM también supera al GARCH en todos los activos con diferencias estadísticamente significativas, con reducciones de RMSE entre el 37\,\% (ETH-USD) y el 95\,\% (NASDAQ). El GARCH muestra sistemáticamente la mayor sobreestimación de la volatilidad en todos los activos evaluados.
+La Tabla~\ref{tab:resumen_metricas} consolida los resultados de MAE y RMSE de los tres modelos para todos los activos evaluados, junto con los $p$-valores del test de Diebold--Mariano de cada modelo \textit{challenger} respecto al GARCH. El resultado más destacado es la consistencia del PSOQRNN como modelo superior en los seis activos, con reducciones de RMSE respecto al GARCH que oscilan entre el 83\% (EUR/USD) y el 96\% (NASDAQ). El CEEMDAN-LSTM también supera al GARCH en todos los activos con diferencias estadísticamente significativas, con reducciones de RMSE entre el 37\% (ETH-USD) y el 95\% (NASDAQ). El GARCH muestra sistemáticamente la mayor sobreestimación de la volatilidad en todos los activos evaluados.
 
 \begin{table}[H]
 \centering
@@ -987,9 +1062,9 @@ GC=F     & Mat. prima & $7.59\times10^{-3}$ & $1.21\times10^{-2}$ & $4.48\times1
 
 Este trabajo comparó tres metodologías de modelamiento de volatilidad en series financieras intradía —GARCH, CEEMDAN-LSTM y PSOQRNN— sobre seis activos de clases diferenciadas: criptomonedas (Bitcoin y Ethereum), divisas (EUR/USD), materias primas (Oro) e índices bursátiles (S\&P\,500 y NASDAQ). Los resultados permiten extraer las siguientes conclusiones.
 
-\textbf{Superioridad consistente del PSOQRNN.} El modelo PSOQRNN obtuvo el mejor desempeño en los seis activos evaluados, con reducciones de RMSE respecto al GARCH que oscilan entre el 83\,\% (EUR/USD) y el 96\,\% (NASDAQ). En todos los casos, el test de Diebold--Mariano confirmó que esta diferencia es estadísticamente significativa ($p \ll 0.001$). La capacidad del PSOQRNN para estimar el cuantil condicional de la volatilidad, combinada con la robustez del PSO para escapar de mínimos locales, se traduce en un ajuste consistentemente superior frente al enfoque paramétrico clásico.
+\textbf{Superioridad consistente del PSOQRNN.} El modelo PSOQRNN obtuvo el mejor desempeño en los seis activos evaluados, con reducciones de RMSE respecto al GARCH que oscilan entre el 83\% (EUR/USD) y el 96\% (NASDAQ). En todos los casos, el test de Diebold--Mariano confirmó que esta diferencia es estadísticamente significativa ($p \ll 0.001$). La capacidad del PSOQRNN para estimar el cuantil condicional de la volatilidad, combinada con la robustez del PSO para escapar de mínimos locales, se traduce en un ajuste consistentemente superior frente al enfoque paramétrico clásico.
 
-\textbf{CEEMDAN-LSTM como alternativa sólida.} El modelo CEEMDAN-LSTM supera al GARCH en casi todos los activos evaluados con diferencias estadísticamente significativas, logrando reducciones de RMSE entre el 37\,\% (ETH-USD) y el 95\,\% (NASDAQ), aunque en ciertos activos cae en un nulo entendimiento de los picos y caídas de las series, prediciendo solo un valor medio, dando así una falsa creencia de mejoría en los resultados si solo se miran las métricas.Por otro lado, el mecanismo de descomposición modal adaptativa permite separar los componentes de frecuencia de la serie antes del entrenamiento, lo que reduce el efecto del ruido y mejora la capacidad predictiva de la red LSTM. No obstante, su ventaja relativa frente al PSOQRNN es menor, especialmente en activos de alta volatilidad como las criptomonedas.
+\textbf{CEEMDAN-LSTM como alternativa sólida.} El modelo CEEMDAN-LSTM supera al GARCH en casi todos los activos evaluados con diferencias estadísticamente significativas, logrando reducciones de RMSE entre el 37\% (ETH-USD) y el 95\% (NASDAQ), aunque en ciertos activos cae en un nulo entendimiento de los picos y caídas de las series, prediciendo solo un valor medio, dando así una falsa creencia de mejoría en los resultados si solo se miran las métricas.Por otro lado, el mecanismo de descomposición modal adaptativa permite separar los componentes de frecuencia de la serie antes del entrenamiento, lo que reduce el efecto del ruido y mejora la capacidad predictiva de la red LSTM. No obstante, su ventaja relativa frente al PSOQRNN es menor, especialmente en activos de alta volatilidad como las criptomonedas.
 
 \textbf{Limitaciones del modelo GARCH.} El GARCH mostró sistemáticamente la mayor sobreestimación de la volatilidad en todos los activos. Este comportamiento es consistente con las limitaciones conocidas de los modelos paramétricos para series intradía: los supuestos de linealidad, la dependencia de la especificación de la distribución de los errores y la incapacidad de capturar cambios estructurales abruptos limitan su desempeño en entornos de alta frecuencia y elevada variabilidad. Sin embargo, el GARCH sigue siendo valioso como referencia de desempeño mínimo esperado y como herramienta para la selección del modelo de media mediante AIC.
 
