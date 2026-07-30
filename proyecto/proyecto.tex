@@ -52,13 +52,13 @@
 
 \newpage
 \begin{center}
-\thispagestyle{empty} \vspace*{0cm} \textbf{\huge Proyecto de}\\ \textbf{\huge Maestría en Ciencias-Estadística} \\ [2.0cm]
+\thispagestyle{empty} \vspace*{0cm} \textbf{\huge Trabajo final}\\ \textbf{\huge Maestría en Ciencias-Estadística} \\ [2.0cm]
 \Large\textbf{Andrés Molina Escobar} \\
 Estudiante de Maestría en Ciencias-Estadística\\[1.0cm]
 
 \textbf{Comparación de metodologías estadísticas y de aprendizaje profundo para el modelamiento de la volatilidad en series financieras intradía.}\\[1.0cm]
 Director:\\
-Cesar Augusto Gomez Velez \\
+César Augusto Gómez Vélez \\
 Profesor Asistente,
 Departamento de Estadística\\[1.0cm]
 
@@ -80,26 +80,94 @@ Medellín, Colombia \\
 \section*{Resumen}
 \addcontentsline{toc}{section}{Resumen}
 
-Este trabajo evaluó y comparó el desempeño de tres metodologías para el pronóstico de la volatilidad en series financieras intradía: el modelo GARCH como representante de los enfoques estadísticos clásicos, y los modelos CEEMDAN-LSTM y PSOQRNN como representantes de los enfoques de aprendizaje profundo e híbridos. El estudio se realizó sobre seis activos financieros de distintas clases ---Bitcoin (BTC-USD), Ethereum (ETH-USD), oro (GC=F), el par de divisas EUR/USD, y los índices bursátiles S\&P\,500 y NASDAQ--- con datos intradía a 15 minutos acumulados entre febrero y julio de 2026. Los resultados muestran que el PSOQRNN supera consistentemente al GARCH en todos los activos evaluados, con reducciones de RMSE entre el 83\,\% y el 96\,\%. El CEEMDAN-LSTM también mejora al GARCH en todos los casos, con reducciones entre el 37\,\% y el 95\,\%. En todos los escenarios, el test de Diebold--Mariano confirma la significancia estadística de estas diferencias ($p \ll 0.001$), evidenciando la superioridad de los enfoques no lineales basados en redes neuronales para el modelamiento de la volatilidad en mercados financieros de alta frecuencia.
+Este trabajo evaluó y comparó el desempeño de tres metodologías para el pronóstico de la volatilidad en series financieras intradía: el modelo GARCH, Heterocedasticidad Condicional Autorregresiva, como representante de los enfoques estadísticos clásicos, y los modelos CEEMDAN-LSTM, Descomposición Empírica de Modos en Conjunto Completa con Ruido Adaptativo combinada con \textit{Long Short-Term Memory}, y PSOQRNN, Red Neuronal Recurrente optimizada por Enjambre de Partículas en su versión cuantílica, como representantes de los enfoques de aprendizaje profundo e híbridos. El estudio se realizó sobre seis activos financieros de distintas clases: Bitcoin (BTC-USD), Ethereum (ETH-USD), oro (GC=F), el par de divisas EUR/USD, y los índices bursátiles S\&P\,500 y NASDAQ. Con datos intradía a 15 minutos acumulados entre febrero y julio de 2026. Los resultados muestran que el PSOQRNN  supera consistentemente al GARCH en todos los activos evaluados, con reducciones de RMSE, Raíz del Error Cuadrático Medio, entre el 83\,\% y el 96\,\%. El CEEMDAN-LSTM también mejora al GARCH en todos los casos, con reducciones entre el 37\,\% y el 95\,\%. En todos los escenarios, el test de Diebold--Mariano, prueba estadística para comparar la precisión de dos modelos de pronóstico, confirma la significancia estadística de estas diferencias ($p \ll 0.001$), evidenciando la superioridad de los enfoques no lineales basados en redes neuronales para el modelamiento de la volatilidad en mercados financieros de alta frecuencia.
 
 \begin{sloppypar}
 \textbf{Palabras clave:} Volatilidad financiera intradía, GARCH, CEEMDAN-LSTM, PSOQRNN, series temporales financieras, test de Diebold--Mariano.
 \end{sloppypar}
 
-\section{Introducción}
-El proyecto tuvo como objetivo comparar el desempeño de modelos tradicionales de volatilidad (ARCH/GARCH) y modelos basados en aprendizaje profundo e híbridos (PSOQRNN y CEEMDAN-LSTM) para el pronóstico de la volatilidad en series financieras intradía correspondientes a divisas, índices bursátiles y criptomonedas. La evaluación se realizó mediante métricas de precisión y pruebas estadísticas con el fin de identificar metodologías robustas para el análisis y pronóstico de mercados financieros altamente volátiles. Los objetivos específicos fueron: (i) evaluar y comparar el desempeño de ARCH/GARCH frente a PSOQRNN y CEEMDAN-LSTM mediante métricas de precisión (RMSE, MAE) y el test de Diebold--Mariano; (ii) determinar, para cada tipo de activo analizado, la metodología con mejor ajuste y capacidad predictiva frente a la volatilidad observada; y (iii) analizar cómo las propiedades estadísticas distintivas de cada clase de activo influyen en la superioridad predictiva de una metodología sobre otra. La implementación completa de los modelos, el pipeline de experimentos y los resultados se encuentran disponibles en el repositorio: \url{https://github.com/andresmolinae29/trabajo-grados-maestria-estadistica-modelos}.
+\newpage
+
+\section[Planteamiento del problema e Introducción]{Planteamiento del problema e Introducción}
+
+La predicción de precios y, en particular, de la volatilidad en mercados financieros intradía es un problema de gran interés práctico y académico porque permite diseñar estrategias de inversión y gestionar el riesgo de forma más informada. No obstante, la literatura especializada señala que estas series presentan características que dificultan considerablemente el pronóstico: son altamente ruidosas, no estacionarias y, en muchos casos, se aproximan a caminatas aleatorias, de modo que pequeñas perturbaciones pueden producir cambios importantes en los resultados esperados. Además, sus propiedades estadísticas pueden variar con el tiempo y exhibir fenómenos como volatilidad en racimos y saltos abruptos, lo que exige métodos capaces de capturar dinámicas no lineales y dependencias temporales complejas.
+
+Frente a este desafío, en el presente trabajo se aborda el pronóstico de la volatilidad intradía para una selección representativa de activos: Bitcoin (BTC-USD), Ethereum (ETH-USD), oro (GC=F), el par de divisas EUR/USD, y los índices bursátiles S\&P\,500 y NASDAQ. con el objetivo de comparar enfoques clásicos y modernos que difieren en supuestos, flexibilidad y costo computacional. Más que estimar el precio puntual, la meta es identificar patrones y tendencias en la variabilidad de la volatilidad que resulten útiles para análisis y aplicaciones posteriores, tales como la construcción de señales de riesgo o insumos para estrategias algorítmicas.
+
+Los modelos evaluados cubren tres familias metodológicas complementarias: (i) modelos estadísticos paramétricos de heterocedasticidad condicional (ARCH/GARCH) que sirven como línea base interpretables; (ii) arquitecturas de aprendizaje profundo híbridas, ejemplificadas por CEEMDAN-LSTM, que combinan descomposición modal adaptativa con redes recurrentes para reducir ruido y modelar patrones no lineales; y (iii) modelos cuantílicos optimizados por metaheurística, representados por PSOQRNN, que estiman directamente cuantiles condicionales de la volatilidad empleando PSO para la búsqueda de pesos. Esta selección permite evaluar trade-offs entre interpretabilidad, capacidad de captura de no linealidad y eficiencia empírica.
+
+Los objetivos específicos del estudio son:
+\begin{enumerate}
+    \item Evaluar y comparar el desempeño de ARCH/GARCH frente a PSOQRNN y CEEMDAN-LSTM mediante métricas de precisión (RMSE y MAE) y el test de Diebold--Mariano.
+    \item Determinar, para cada tipo de activo analizado, la metodología con mejor ajuste y capacidad predictiva frente a la volatilidad observada.
+    \item Analizar cómo las propiedades estadísticas distintivas de cada clase de activo (por ejemplo, persistencia de la volatilidad, frecuencia de picos) influyen en la superioridad predictiva de una metodología sobre otra.
+\end{enumerate}
+
+La implementación incluye un \textit{pipeline} reproducible de obtención y preprocesamiento de datos intradía (muestreo a 15 minutos, relleno de faltantes, construcción de retornos y volatilidad realizada), ajuste y selección de modelos, y evaluación fuera de muestra. Los detalles técnicos, el código fuente de los modelos y los experimentos se encuentran disponibles en el repositorio: \url{https://github.com/andresmolinae29/trabajo-grados-maestria-estadistica-modelos}.
+
+Este enfoque busca aportar evidencia empírica sobre la conveniencia de métodos no lineales e híbridos para el modelamiento de volatilidad intradía, identificando ventajas, limitaciones y consideraciones prácticas de cada alternativa para su uso en análisis cuantitativos y aplicaciones operativas.
+
+
+\section{Antecedentes del Problema Propuesto}
+
+Los modelos \textbf{ARCH} y \textbf{GARCH} continúan siendo fundamentales para modelar y predecir la volatilidad financiera. Algunas aplicaciones recientes incluyen:
+
+\begin{itemize}
+    \item \textbf{Alta frecuencia (HFT):} Modelos GARCH, incluyendo variantes EGARCH y TGARCH, se han utilizado para prever la volatilidad en mercados de alta frecuencia, mostrando alta persistencia y mejorando predicciones al combinarse con técnicas de aprendizaje automático \cite{hft2024}.
+
+    \item \textbf{Índices bursátiles globales:} Se aplicaron GARCH y TGARCH para analizar volatilidad en índices como S\&P 500, FTSE 100 o Nikkei 225, capturando volatilidad asimétrica durante eventos críticos \cite{marisetty2024}.
+
+\end{itemize}
+
+No obstante, a pesar de su solidez, los modelos de la familia GARCH presentan limitaciones conocidas. Siendo modelos paramétricos, a menudo imponen supuestos restrictivos sobre la distribución de los errores y luchan por capturar dinámicas no lineales complejas, efectos de largo plazo o cambios estructurales abruptos. Esta dificultad se magnifica en series financieras modernas, caracterizadas por alta frecuencia (datos intradía), no estacionariedad y ruido elevado, como las observadas en los mercados de criptomonedas
+
+Es precisamente este interés por superar dichas limitaciones y mejorar la precisión predictiva en entornos complejos lo que ha motivado la combinación de modelos estadísticos con técnicas de aprendizaje automático y metaheurísticas. En particular, dos líneas recientes cobran relevancia para este trabajo: las redes de regresión cuantílica optimizadas por enjambre de partículas (PSOQRNN) y los esquemas de descomposición de la señal combinados con LSTM (CEEMDAN-LSTM). A continuación se sintetizan los antecedentes y aplicaciones recientes de ambas aproximaciones.
+
+\paragraph{PSOQRNN.}
+El modelo PSOQRNN —que integra la función de pérdida cuantílica (QRNN) con una etapa de ajuste por Particle Swarm Optimization (PSO)— fue propuesto como alternativa para estimar cuantiles condicionales y mejorar la robustez frente a mínimos locales en el entrenamiento de redes \citep{pradeepkumar2017forecasting}. Aunque la propuesta original se aplicó principalmente a índices bursátiles (ej. S\&P500, NIFTY) y series de volatilidad diaria, la investigación posterior ha explorado extensivamente el uso de PSO para ajustar parámetros de modelos predictivos en finanzas, mostrando que las metaheurísticas siguen siendo útiles para optimizar arquitecturas y funciones de pérdida en entornos ruidosos y multimodales \citep{pradeepkumar2017forecasting, tissaoui2024pso}. En el ámbito de divisas, trabajos híbridos recientes que emplean PSO para sintonizar modelos de series han mostrado mejoras en precisión a corto plazo, lo que sugiere que la combinación PSO+QRNN es prometedora también para Forex aunque la literatura específica sobre ``PSOQRNN aplicado a pares FX (EUR/USD)'' sigue siendo escasa y dispersa, lo que motiva su evaluación sistemática en este proyecto.
+
+\paragraph{CEEMDAN--LSTM.}
+El uso de técnicas de descomposición de señales como CEEMDAN seguido del ajuste de modelos LSTM ha proliferado en la última década debido a su capacidad para separar componentes por escala (IMFs) y reducir ruido antes de la fase de predicción. Estudios aplicados han reportado ganancias de precisión en la previsión de índices bursátiles y en series de criptomonedas al aplicar CEEMDAN antes de redes profundas \citep{lin2021ceemdanlstm, cao2019financial}. Más recientemente (2021–2024), se publicaron trabajos que aplican variantes CEEMDAN–LSTM y CEEMDAN–RF–LSTM (Incluye un RF - Random Forest para reducir ruído) para el pronóstico de índices (p. ej. S\&P500 y CSI300) y para la estimación de volatilidad de criptomonedas, reportando reducciones significativas en métricas de error frente a LSTM sin descomposición u otros enfoques híbridos \citep{lin2021ceemdanlstm, wang2024ceemdanrf_lstm}. Asimismo, estudios comparativos y revisiones sistemáticas recientes subrayan que los enfoques de descomposición + LSTM son consistentes en mejorar el rendimiento en series no estacionarias y con ruido alto, típicas de mercados intradía y de criptoactivos \citep{aksehir2024review, zhu2024ceemdan_lstm_bn}. Estas evidencias justifican la inclusión de CEEMDAN--LSTM en un marco comparativo amplio que incluya divisas, índices y criptomonedas.
+
+\paragraph{Síntesis.}
+En resumen, la evidencia reciente (2020--2025) apoya la idea de que (i) las metaheurísticas como PSO siguen siendo herramientas útiles para la optimización de parámetros en modelos predictivos financieros y (ii) las estrategias de descomposición previa (CEEMDAN) combinadas con LSTM tienden a mejorar la precisión en índices y criptoactivos. No obstante, la aplicación específica de \emph{PSOQRNN} a series intradía de divisas y criptomonedas está menos documentada en el periodo 2020--2025, lo que valida la motivación del presente estudio para realizar evaluaciones comparativas sistemáticas entre ARCH/GARCH, LSTM, PSOQRNN y CEEMDAN--LSTM sobre distintos activos intradía.
+
+
+\section[Marco teórico]{Marco teórico}
+
+El marco teórico de este trabajo se estructura en torno a tres ejes fundamentales que permiten contextualizar el problema y sustentar la comparación de metodologías. En primer lugar, se presenta una descripción del funcionamiento de los mercados financieros y del papel del \textit{eTrading} en la dinámica actual de negociación de activos. Posteriormente, se revisan los principales enfoques estadísticos y computacionales empleados en la identificación de patrones y predicción de precios, haciendo énfasis en sus fundamentos y aplicaciones. Finalmente, se detallan los modelos específicos que serán objeto de análisis en este estudio, incluyendo los métodos tradicionales de series de tiempo, como GARCH, así como propuestas modernas basadas en redes neuronales y modelos híbridos. Esta revisión proporciona las bases conceptuales necesarias para entender las fortalezas y limitaciones de cada metodología en el modelamiento de la volatilidad.
+
+\subsection[Mercado - eTrading]{Mercado - eTrading}
+
+\paragraph{Mercados financieros}
+Son espacios físicos y virtuales, donde se intercambian diferentes activos financieros, como monedas, índices, criptomonedas, productos básicos, entre otros. Los precios en los que estos se negocian dependen de distintos factores, tales como la oferta y la demanda, las condiciones macroeconómicas e incluso la especulación. En este contexto, surgen sistemas como el \textit{eTrading}, que son plataformas digitales a través de las cuales se tranzan dichos activos, y que han permitido un incremento exponencial en la participación del mercado. Este crecimiento, sin embargo, también ha generado una mayor volatilidad en los precios, en parte como consecuencia del uso de algoritmos de alta frecuencia \cite{jansen2020machine}
+
+\paragraph{Algoritmos de alta frecuencia}
+Dentro de este panorama, los algoritmos de alta frecuencia constituyen una forma automatizada de realizar operaciones de trading mediante algoritmos matemáticos o pasos lógicos, los cuales pueden apalancarse en técnicas de \textit{machine learning} o en modelos estadísticos para la predicción o identificación de patrones. El objetivo principal es ejecutar operaciones que conduzcan a la optimización de un portafolio de inversión. En última instancia, esta práctica busca la generación de una rentabilidad que excede la obtenida respecto a un \textit{benchmark} \cite{jansen2020machine} o marco de referencia, por ejemplo, instrumentos básicos de inversión como un CDT (certificados de depósito a término) que suelen ser inversiones muy simples.
+
+\paragraph{Trading algorítmico}
+Más allá de la alta frecuencia, el trading algorítmico, en un sentido amplio, comprende el uso de algoritmos, incluidos modelos de aprendizaje automático, para procesar el flujo de órdenes de compra y venta, así como las estadísticas de volumen y precios asociadas. El propósito de este enfoque es extraer señales de trading que permitan inferir la dinámica de oferta y demanda, o bien identificar comportamientos característicos de determinados participantes del mercado \cite{jansen2020machine}.
+
+\subsection[Modelos de predicción e identifación de patrones]{Modelos de predicción e identifación de patrones}
+Teniendo en cuenta lo anterior, la complejidad derivada del alto volumen de transacciones y la volatilidad de los mercados financieros plantea la necesidad de implementar técnicas avanzadas de predicción de volatilidad y de identificación de patrones. Para ello, se han desarrollado diferentes modelos estadísticos y computacionales, entre los que destacan ARCH (Modelo heterocedástico autorregresivo), GARCH (Modelo generalizado ARCH) y enfoques híbridos que integran métodos tradicionales con técnicas modernas, como PSOQRNN (Regresión neuronal quantil entrenada con \textit{optimización de enjambre de partículas}) o CEEMDAN-LSTM (Descomposición de series de tiempo combinada con redes de memoria a largo plazo).
+
 
 \section{Preparación y obtención de datos}
 
 La obtención de datos intradía para el análisis de series financieras de alta frecuencia requiere fuentes especializadas que permitan acceder a cotizaciones con granularidad temporal fina. Para este trabajo se desarrolló un módulo de extracción de datos que consulta la interfaz de programación de aplicaciones (API) de Yahoo Finance, obteniendo registros con una frecuencia de muestreo de 15 minutos para un conjunto de activos financieros de distintas clases. Dado que la plataforma impone una restricción de 60 días naturales sobre el historial intradía disponible en cada consulta, el módulo implementa un mecanismo de acumulación incremental: los datos obtenidos en cada ejecución se almacenan localmente en archivos CSV y en ejecuciones posteriores únicamente se descarga el período más reciente que aún no ha sido registrado. De esta manera, la cobertura temporal crece de forma continua con cada actualización, superando la limitación de la ventana móvil de 60 días. El código fuente del módulo de extracción se encuentra disponible en: \url{https://github.com/andresmolinae29/trabajo-grados-maestria-estadistica-obtencion-datos}. La cobertura temporal acumulada abarca el período comprendido entre el 5 de febrero y el 2 de julio de 2026.
 
+El módulo se implementó en Python (versión 3.9 o superior) apoyándose en un conjunto reducido de librerías de propósito general: \texttt{requests} para las peticiones HTTP, \texttt{retry} para tolerar fallos transitorios de red, \texttt{pydantic} para validar la configuración de ejecución y \texttt{pandas} para la manipulación tabular de los datos. A continuación se detalla el esquema técnico de las tres etapas del proceso: descarga, transformación y curación.
+
 \subsection{Esquema de obtención de datos}
 
-Para cada activo se extrajeron los campos de precio de apertura, máximo, mínimo, cierre y volumen de transacciones por intervalo de 15 minutos. Las series se almacenaron en archivos con valores separados por punto y coma (\texttt{CSV}) en codificación \texttt{UTF-8}, utilizando el precio de cierre (\textit{close}) como variable de referencia para el cálculo de retornos y volatilidad.
+\textbf{Descarga.} En lugar de recurrir a una librería intermediaria como \texttt{yfinance}, la descarga consulta directamente el punto final público de Yahoo Finance (\url{https://query2.finance.yahoo.com/v8/finance/chart/}, seguido del símbolo del activo), enviando como parámetros las marcas de tiempo Unix de inicio y fin del período solicitado (\texttt{period1}, \texttt{period2}) y el intervalo de muestreo (\texttt{interval=15m}). Dado que este punto final no garantiza una granularidad de 15 minutos consistente para rangos de fechas amplios, las peticiones se fragmentan día por día (00:00:00 a 23:59:59), y cada respuesta cruda en formato JSON se guarda de forma independiente. Las peticiones se realizan mediante una sesión HTTP persistente (\texttt{requests.Session}) con encabezados que emulan un navegador estándar, y cada llamada se reintenta automáticamente hasta tres veces ante fallos de tiempo de espera o de conexión (librería \texttt{retry}). Los parámetros de cada activo (símbolo, carpeta de almacenamiento y fecha de inicio) se especifican en un archivo de configuración en formato YAML, validado mediante un esquema de \texttt{pydantic}; tras cada ejecución exitosa, la fecha de inicio de cada activo se actualiza automáticamente a la fecha de fin de la última descarga, lo que materializa el mecanismo de acumulación incremental mencionado anteriormente.
 
-Con el fin de garantizar la continuidad temporal de las series, los valores faltantes se trataron mediante un esquema de propagación secuencial: primero se aplica relleno hacia adelante (\textit{forward fill}), que reemplaza cada valor ausente con la última observación válida disponible; a continuación, se aplica relleno hacia atrás (\textit{backward fill}) para cubrir los valores faltantes que pudieran quedar al inicio de la serie. Este procedimiento es consistente con la práctica estándar en datos de mercado intradía, donde los períodos sin transacciones activas se representan replicando el último precio negociado \cite{jansen2020machine}.
+\textbf{Transformación.} Cada archivo JSON crudo se procesa por separado: se extraen los arreglos de marca de tiempo y de precios de apertura, máximo, mínimo, cierre y volumen contenidos en la respuesta de la API, y se ensamblan en un \texttt{DataFrame} de \texttt{pandas}, convirtiendo las marcas de tiempo Unix a formato de fecha y hora. Los archivos diarios de un mismo activo se concatenan y ordenan cronológicamente, y el resultado se guarda como un único archivo con valores separados por punto y coma (\texttt{CSV}) en codificación \texttt{UTF-8}, utilizando el precio de cierre (\textit{close}) como variable de referencia para el cálculo posterior de retornos y volatilidad.
+
+\textbf{Curación.} En cada ejecución, el archivo recién transformado se concatena con el histórico curado previamente almacenado para ese activo. Sobre esta serie combinada se eliminan los registros con marca de tiempo duplicada (conservando el primero tras ordenar por fecha y precio de apertura), y los valores faltantes se tratan mediante un esquema de propagación secuencial: primero se aplica relleno hacia adelante (\textit{forward fill}), que reemplaza cada valor ausente con la última observación válida disponible; a continuación, se aplica relleno hacia atrás (\textit{backward fill}) para cubrir los valores faltantes que pudieran quedar al inicio de la serie. Este procedimiento es consistente con la práctica estándar en datos de mercado intradía, donde los períodos sin transacciones activas se representan replicando el último precio negociado \cite{jansen2020machine}. El archivo curado resultante es el que se emplea directamente en la Sección~\ref{sec:descripcion-activos} y como insumo para la construcción de retornos y volatilidad en la Sección~\ref{sec:preparacion-general}.
 
 \subsection{Descripción de los activos}
+\label{sec:descripcion-activos}
 
 Los activos utilizados en el estudio cubren tres clases de instrumentos financieros con perfiles de volatilidad diferenciados: criptomonedas (Bitcoin y Ethereum), índices bursátiles (S\&P\,500 y NASDAQ) y divisas (EUR/USD). Adicionalmente se incluye el precio del oro como activo de referencia. La Tabla~\ref{tab:activos} resume la cantidad de observaciones intradía disponibles para cada activo luego del proceso de acumulación y limpieza de datos.
 
@@ -121,7 +189,84 @@ Los activos utilizados en el estudio cubren tres clases de instrumentos financie
     \end{tabular}
 \end{table}
 
+Para complementar la descripción cuantitativa de la Tabla~\ref{tab:activos}, la Tabla~\ref{tab:activos-estadisticas} resume las principales estadísticas descriptivas del precio de cierre de cada activo sobre la totalidad de la muestra acumulada, y las Figuras~\ref{fig:precio-bitcoin} a~\ref{fig:precio-sp500} muestran su evolución en el tiempo. A diferencia de las figuras de la Sección~\ref{sec:evaluacion}, que presentan la volatilidad realizada como variable de interés, estas figuras muestran el precio de cierre sin transformar, con el fin de dar un contexto general de la escala, la tendencia y los principales movimientos de cada activo antes de introducir las transformaciones a retornos y volatilidad de la Sección~\ref{sec:preparacion-general}.
+
+\begin{table}[H]
+\centering
+\caption{Estadísticas descriptivas del precio de cierre por activo, calculadas sobre la totalidad de la muestra acumulada (5 de febrero -- 2 de julio de 2026).}
+\label{tab:activos-estadisticas}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrrrr}
+\hline
+\textbf{Activo} & \textbf{Observaciones} & \textbf{Promedio} & \textbf{Mínimo} & \textbf{Máximo} & \textbf{Desv. estándar} & \textbf{Mediana} \\
+\hline
+Bitcoin (BTC-USD)   & $14\,113$ & $\$70\,483{,}71$ & $\$58\,051{,}36$ & $\$82\,670{,}00$ & $\$5\,881{,}79$ & $\$69\,922{,}73$ \\
+Ethereum (ETH-USD)  & $14\,113$ & $\$2\,042{,}32$   & $\$1\,518{,}28$  & $\$2\,461{,}00$  & $\$228{,}02$    & $\$2\,064{,}03$ \\
+Oro (GC=F)           & $10\,163$ & $\$4\,688{,}68$   & $\$3\,971{,}00$  & $\$5\,431{,}00$  & $\$329{,}36$    & $\$4\,695{,}70$ \\
+EUR/USD              & $10\,062$ & $\$1{,}165$       & $\$1{,}133$      & $\$1{,}193$      & $\$0{,}013$     & $\$1{,}16$ \\
+NASDAQ (\^{}IXIC)   & $2\,632$  & $\$24\,212{,}14$  & $\$20\,700{,}16$ & $\$27\,168{,}06$ & $\$1\,803{,}27$ & $\$24\,379{,}88$ \\
+S\&P\,500 (\^{}GSPC) & $2\,605$  & $\$7\,080{,}94$   & $\$6\,319{,}87$  & $\$7\,616{,}73$  & $\$345{,}81$    & $\$7\,108{,}19$ \\
+\hline
+\end{tabular}%
+}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{las_figuras/iniciales/bitcoin.png}
+    \caption{Evolución del precio de cierre del Bitcoin (BTC-USD).}
+    \label{fig:precio-bitcoin}
+\end{figure}
+
+El precio del Bitcoin exhibe la mayor variabilidad relativa del estudio, coherente con la desviación estándar más alta en términos absolutos de la Tabla~\ref{tab:activos-estadisticas}: en el tramo mostrado se observan oscilaciones repetidas de varios miles de dólares en pocos días, incluyendo un descenso hasta cerca de $\$63\,000$ a finales de febrero y un repunte posterior hasta el máximo del período, cercano a $\$76\,000$, a mediados de marzo.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{las_figuras/iniciales/ethereum.png}
+    \caption{Evolución del precio de cierre del Ethereum (ETH-USD).}
+    \label{fig:precio-ethereum}
+\end{figure}
+
+El Ethereum sigue un patrón cualitativamente similar al del Bitcoin, con ciclos de subida y bajada más frecuentes y de mayor amplitud relativa: en el tramo mostrado el precio cae hasta cerca de $\$1\,800$ a finales de febrero, para luego encadenar varios repuntes hasta superar los $\$2\,380$ a mediados de marzo.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{las_figuras/iniciales/eur_usd.png}
+    \caption{Evolución del precio de cierre del par EUR/USD.}
+    \label{fig:precio-eurusd}
+\end{figure}
+
+El par EUR/USD se mueve en un rango mucho más estrecho que las criptomonedas, entre $\$1{,}13$ y $\$1{,}19$ aproximadamente, y su gráfico deja ver con claridad los espacios sin cotización correspondientes a los fines de semana, propios de un mercado que no opera de forma continua. La serie muestra una tendencia bajista sostenida desde mediados de febrero hasta un mínimo cercano a $\$1{,}14$ a mediados de marzo, seguida de una recuperación gradual hacia niveles cercanos a $\$1{,}185$.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{las_figuras/iniciales/gold.png}
+    \caption{Evolución del precio de cierre del Oro (GC=F).}
+    \label{fig:precio-gold}
+\end{figure}
+
+El oro combina una tendencia alcista moderada durante la mayor parte del tramo mostrado --- desde cerca de $\$4\,800$ hasta un máximo cercano a $\$5\,430$ a mediados de marzo --- con una corrección abrupta inmediatamente posterior, en la que el precio retrocede hasta cerca de $\$4\,130$ en cuestión de días, antes de iniciar una recuperación gradual. Este episodio constituye el retroceso porcentual más pronunciado en un lapso corto de todos los activos de referencia (precios) analizados.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{las_figuras/iniciales/nasqad.png}
+    \caption{Evolución del precio de cierre del índice NASDAQ (\^{}IXIC).}
+    \label{fig:precio-nasdaq}
+\end{figure}
+
+El NASDAQ, a diferencia de los activos anteriores, se muestra a lo largo de todo el período acumulado (5 de febrero -- 2 de julio de 2026), lo que permite apreciar un ciclo completo de mercado: una corrección inicial desde cerca de $23\,000$ puntos hasta un mínimo cercano a $20\,700$ a comienzos de abril, seguida de una recuperación pronunciada que lleva al índice hasta su máximo del período, cercano a $27\,200$ puntos, a finales de mayo, y una fase posterior de consolidación con oscilaciones moderadas entre $25\,500$ y $26\,500$ puntos hasta el cierre de la muestra.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{las_figuras/iniciales/sp500.png}
+    \caption{Evolución del precio de cierre del índice S\&P\,500 (\^{}GSPC).}
+    \label{fig:precio-sp500}
+\end{figure}
+
+El S\&P\,500 exhibe, como es de esperarse dada su alta correlación estructural con el NASDAQ, un patrón prácticamente idéntico en forma: una corrección desde cerca de $6\,900$ hasta un mínimo cercano a $6\,320$ a finales de marzo, una recuperación sostenida hasta un máximo cercano a $7\,620$ a comienzos de junio, y una fase final de consolidación con fluctuaciones moderadas entre $7\,300$ y $7\,600$ puntos.
+
 \section{Preparación general de datos para el modelado}
+\label{sec:preparacion-general}
 
 Previo al ajuste de los modelos de volatilidad, se construyeron las series derivadas necesarias para cada metodología. El proceso de preprocesamiento siguió las etapas descritas a continuación.
 
@@ -136,7 +281,7 @@ Previo al ajuste de los modelos de volatilidad, se construyeron las series deriv
     \begin{equation}
         \varepsilon_t = r_t - \bar{r},
     \end{equation}
-    donde $\bar{r}$ denota la media de los retornos en la muestra de entrenamiento. Esta serie captura el componente de sorpresa o ruido del proceso de retornos y constituye una de las variables de entrada del modelo PSOQRNN.
+    donde $\bar{r}$ denota la media muestral de los retornos, calculada sobre la serie completa (entrenamiento y prueba) antes de realizar la partición temporal. Esta serie captura el componente de sorpresa o ruido del proceso de retornos y constituye una de las variables de entrada del modelo PSOQRNN.
 
     \item \textbf{Volatilidad realizada.} La volatilidad se estimó mediante la desviación estándar móvil de los retornos en una ventana de $\omega = 252$ observaciones, anualizada bajo el supuesto de sesiones continuas de operación:
     \begin{equation}
@@ -147,64 +292,293 @@ Previo al ajuste de los modelos de volatilidad, se construyeron las series deriv
     \item \textbf{Partición entrenamiento-prueba.} Las series preprocesadas se dividieron cronológicamente en un 80\,\% para entrenamiento y un 20\,\% para prueba, preservando el orden temporal de las observaciones. Esta partición se realizó sobre las series de volatilidad realizada ya construidas, de modo que cada modelo fue evaluado sobre el mismo horizonte de prueba.
 \end{itemize}
 
-\section{Modelos de pronóstico de volatilidad}
+Es importante señalar que el cálculo de $\bar{r}$ empleado para construir la serie de innovaciones $\varepsilon_t$ se realiza sobre la serie completa de retornos, es decir, antes de la partición entrenamiento-prueba y no exclusivamente sobre el tramo de entrenamiento. Esto introduce una fuga de información (\textit{look-ahead bias}) hacia el conjunto de prueba, ya que $\bar{r}$ incorpora información de retornos que, en un escenario de pronóstico real, todavía no habrían ocurrido en el momento de la predicción. Esta práctica reproduce la definición original de $\varepsilon_t$ de \citet{pradeepkumar2017forecasting} (Ecuación 10 del artículo original), donde $\bar r$ se define igualmente como la media incondicional del período completo, sin distinguir entre muestra de entrenamiento y de prueba. Al tratarse de una constante escalar que se resta de manera uniforme sobre toda la serie, su efecto sobre el ordenamiento relativo entre modelos es limitado; no obstante, los resultados de PSOQRNN y de los demás modelos que consumen esta serie de innovaciones deben interpretarse, en este aspecto puntual, como una evaluación pseudo-fuera-de-muestra, lo cual se reconoce como una limitación metodológica heredada de la propuesta original más que como un hallazgo del presente trabajo.
+
+
+\section{Modelo GARCH}
+
+\subsection[Modelos GARCH]{Model GARCH}
+
+El modelo ARCH(q) (Heterocedasticidad Condicional Autorregresiva) propuesto por \cite{engle1982arch} asume que la serie $\{y_t\}$ puede escribirse como:
+
+\begin{equation}
+    y_t = \mu + \varepsilon_t,
+    \qquad
+    \varepsilon_t = \sigma_t z_t,
+    \qquad
+    z_t \sim \text{i.i.d. }N(0,1),
+\end{equation}
+
+donde $y_t$ es la observación en el tiempo $t$, $\mu$ es la media constante,
+$\varepsilon_t$ es la innovación o error, $z_t$ es un choque estandarizado con media cero y varianza uno,
+y $\sigma_t$ representa la desviación estándar condicional en el tiempo $t$.
+
+La heterocedasticidad condicional se modela como:
+
+\begin{equation}
+    \sigma_t^2 = \alpha_0 + \sum_{i=1}^{q} \alpha_i \varepsilon_{t-i}^2,
+    \qquad \alpha_0 > 0,\ \alpha_i \ge 0,
+\end{equation}
+
+donde $\alpha_0$ representa una varianza base o nivel mínimo
+y los coeficientes $\alpha_i$ determinan cuánto peso tienen los errores pasados
+sobre la varianza presente. En particular, valores grandes de errores pasados
+($\varepsilon_{t-i}^2$) incrementan la varianza condicional actual.
+
+\vspace{0.3cm}
+
+\noindent\textbf{Volatilidad en racimos.}
+Un rasgo empírico típico de las series financieras es la presencia de \emph{volatilidad en racimos}
+(\emph{volatility clustering}), que se manifiesta en periodos consecutivos de alta variabilidad
+seguida de más alta variabilidad, y periodos tranquilos seguidos de variabilidad baja.
+El modelo ARCH captura este fenómeno mediante la dependencia explícita de $\sigma_t^2$
+respecto a los errores pasados. En términos cualitativos,
+
+\begin{equation}
+\begin{aligned}
+\varepsilon_{t-1}^2 \ \text{grande}
+&\ \Rightarrow\
+\sigma_t^2 \ \text{grande (alta volatilidad futura)},\\[4pt]
+\varepsilon_{t-1}^2 \ \text{pequeño}
+&\ \Rightarrow\
+\sigma_t^2 \ \text{pequeña (baja volatilidad futura)}.
+\end{aligned}
+\end{equation}
+
+Esto reproduce el comportamiento observado en los mercados: los grandes cambios tienden a agruparse en el tiempo, en lugar de ocurrir de manera aislada.
+
+Posteriormente, \cite{bollerslev1986garch} generalizó este enfoque con el siguiente modelo \textbf{GARCH(p,q)} (ARCH Generalizado), que incorpora retardos de la varianza condicional para lograr una representación más parsimoniosa:
+
+\begin{equation}
+\sigma_t^2 = \alpha_0 + \sum_{i=1}^{q} \alpha_i \varepsilon_{t-i}^2
++ \sum_{j=1}^{p} \beta_j \sigma_{t-j}^2
+\end{equation}
+
+con condiciones de positividad: \(\alpha_0 > 0, \; \alpha_i \geq 0, \; \beta_j \geq 0\). Este modelo es ampliamente utilizado para estimar y predecir la volatilidad de activos financieros.
+
+\vspace{0.3cm}
+
+\noindent\textbf{Estacionariedad y persistencia.}
+Para que el modelo GARCH$(p,q)$ tenga una varianza incondicional finita y bien definida --- condición necesaria para que la volatilidad no diverja en el largo plazo --- los coeficientes deben satisfacer
+
+\begin{equation}
+    \sum_{i=1}^{q} \alpha_i + \sum_{j=1}^{p} \beta_j < 1.
+\end{equation}
+
+Bajo esta condición, tomando valor esperado no condicional a ambos lados de la ecuación de varianza y usando que $\mathbb{E}[\sigma_{t-j}^2] = \mathbb{E}[\varepsilon_{t-i}^2] = \bar\sigma^2$ en el equilibrio de largo plazo, se obtiene la varianza incondicional
+
+\begin{equation}
+    \bar\sigma^2 = \frac{\alpha_0}{1 - \sum_{i=1}^{q}\alpha_i - \sum_{j=1}^{p}\beta_j}.
+\end{equation}
+
+La cantidad $\sum_i \alpha_i + \sum_j \beta_j$, cercana a $1$ en la mayoría de series financieras, mide la \emph{persistencia} de un choque sobre la volatilidad futura: entre más cercana a la unidad, más lentamente decae el efecto de un choque de volatilidad y más tiempo tarda la serie en revertir hacia su varianza incondicional $\bar\sigma^2$.
+
+\noindent\textbf{Estimación.}
+Los parámetros $(\alpha_0, \alpha_1,\ldots,\alpha_q,\beta_1,\ldots,\beta_p)$ se estiman por máxima verosimilitud, maximizando la función de log-verosimilitud condicional construida a partir de la distribución supuesta para el choque estandarizado $z_t$. La forma funcional de esta log-verosimilitud depende de dicha distribución --- Normal, $t$ de Student o $t$ asimétrica (\textit{skewed-t}) ---, por lo que la elección de la distribución de innovaciones no solo afecta el ajuste a las colas de la serie, sino también la propia función objetivo que se optimiza durante la estimación.
+
+\noindent\textbf{Asimetría y efecto apalancamiento: GJR-GARCH.}
+Una limitación del modelo GARCH$(p,q)$ estándar es que asigna el mismo peso $\alpha_i$ a choques positivos y negativos de igual magnitud, mientras que en los mercados financieros es frecuente observar que las caídas de precio incrementan la volatilidad futura en mayor medida que subidas de igual tamaño (\emph{efecto apalancamiento}). El modelo GJR-GARCH incorpora este comportamiento asimétrico mediante un término adicional que se activa únicamente ante choques negativos:
+
+\begin{equation}
+    \sigma_t^2 = \alpha_0 + \sum_{i=1}^{q}\Bigl(\alpha_i + \gamma_i\,\mathbb{1}\{\varepsilon_{t-i}<0\}\Bigr)\varepsilon_{t-i}^2 + \sum_{j=1}^{p}\beta_j\,\sigma_{t-j}^2,
+\end{equation}
+
+donde $\mathbb{1}\{\varepsilon_{t-i}<0\}$ es una función indicadora que toma el valor $1$ cuando el choque pasado fue negativo y $0$ en caso contrario, y $\gamma_i \geq 0$ cuantifica el incremento adicional en la varianza condicional atribuible específicamente a choques negativos. Cuando $\gamma_i = 0$ el modelo se reduce al GARCH estándar; cuando $\gamma_i > 0$, un choque negativo de magnitud $|\varepsilon_{t-i}|$ incrementa la varianza condicional más que un choque positivo de la misma magnitud.
+
 
 \subsection{Modelos tradicionales: GARCH}
 
-El modelo GARCH (Heterocedasticidad Condicional Autorregresiva Generalizada) fue introducido por \citet{bollerslev1986garch} como extensión del modelo ARCH propuesto por \citet{engle1982arch}. Bajo el esquema de modelado adoptado, la serie de retornos $y_t$ se descompone como
+La implementación retoma la especificación GARCH$(p,q)$ presentada en la sección anterior, ajustada mediante la librería de Python \texttt{arch}, que provee la rutina de estimación por máxima verosimilitud y el cómputo de la volatilidad condicional. El ajuste de la media y la selección del orden autorregresivo se apoyan en la librería \texttt{pmdarima}, mientras que el manejo numérico de las series se realiza con \texttt{numpy} y \texttt{pandas}.
+
+\textbf{Preprocesamiento específico.} A diferencia de los modelos de redes neuronales, el GARCH opera sobre los log-retornos $r_t^{\ln} = \ln(P_t/P_{t-1})$, calculados internamente a partir de los precios de cierre, en lugar de los retornos simples $r_t$ empleados por los demás modelos; esto garantiza consistencia interna entre la serie de retornos usada para estimar el modelo y la volatilidad realizada de referencia con la que se compara el pronóstico. Para mejorar el condicionamiento numérico del optimizador, los residuales se multiplican por un factor de escala fijo de $100$ antes de la estimación (parámetro \texttt{rescale=False} de \texttt{arch}, para evitar el reescalado automático de la librería); la volatilidad condicional predicha se desescala dividiendo por este mismo factor y se anualiza multiplicando por $\sqrt{252}$ en la etapa de inferencia.
+
+\textbf{Filtrado de la media.} Dado que el GARCH modela la heterocedasticidad de los residuales, se ajustó previamente un modelo ARIMA a la serie de log-retornos de entrenamiento mediante la función \texttt{auto\_arima} de \texttt{pmdarima}. El orden $(p, d, q)$ del ARIMA se seleccionó automáticamente minimizando el Criterio de Información de Akaike (AIC) mediante búsqueda escalonada (\textit{stepwise}), sin componente estacional. Los residuales de este modelo de media se escalan y se utilizan como insumo para la estimación GARCH, la cual se ajusta con media nula (\texttt{mean="Zero"}), puesto que la componente de media ya fue extraída por el ARIMA.
+
+\textbf{Selección de hiperparámetros.} Se evaluó una cuadrícula de siete configuraciones sobre los residuales de entrenamiento: GARCH$(1,1)$ con distribución de innovaciones Normal, GARCH$(1,1)$, GARCH$(1,2)$, GARCH$(2,1)$ y GARCH$(2,2)$ con distribución $t$ de Student, y dos configuraciones GJR-GARCH$(1,1,1)$ (parámetro de asimetría $o=1$, potencia $2.0$) con distribuciones $t$ y $t$ asimétrica (\textit{skewed-t}), estas últimas orientadas a capturar el efecto de apalancamiento presente en series financieras. Cada configuración se ajusta con \texttt{arch}, descartando aquellas en que el optimizador no converge (detectado mediante las advertencias de convergencia de la librería); la configuración final es la de menor AIC entre las que sí convergen.
+
+\textbf{Pronóstico.} La predicción se realiza con un horizonte de un paso adelante (15 minutos) y en dos etapas. Primero, el modelo de media ARIMA se actualiza de forma secuencial sobre el conjunto de prueba: para cada instante se genera el pronóstico a un paso, se calcula el residual correspondiente frente al valor observado, y el modelo se actualiza con dicha observación antes de continuar al siguiente instante, sin reestimar sus parámetros. Segundo, los parámetros del modelo GARCH estimados en entrenamiento se fijan (\texttt{arch\_model.fix}) y la volatilidad condicional se calcula recursivamente sobre la serie completa de residuales escalados (entrenamiento más prueba), extrayendo únicamente los valores del período de prueba. Este esquema equivale a un pronóstico $h=1$ con información disponible hasta $t-1$, sin reestimación de los parámetros del GARCH.
+
+\subsection{Especificación GARCH por activo}
+\label{sec:garch-por-activo}
+
+\textcolor{orange}{[Apartado por construir: se documentará aquí, para cada uno de los seis activos, la configuración GARCH finalmente seleccionada por el procedimiento de la sección anterior --- orden $(p,q)$ u orden GJR-GARCH, distribución de innovaciones y AIC obtenido --- una vez se consolide dicha información.]}
+
+
+\section{Modelo CEEMDAN-LSTM}
+
+\subsection[CEEMDAN-LSTM]{CEEMDAN-LSTM}
+
+Es un enfoque que combina la descomposición de señales con redes neuronales profundas, buscando mejorar la predicción en series no lineales y no estacionarias.
+
+\paragraph{a. CEEMDAN}
+Propuesto por \cite{torres2011ceemdan} aparece como propuesta frente al modelo EEMD (Descomposición Empírica de Modos en Ensamble), el cual no es capaz de eliminar el ruido blanco en la reconstrucción de las series. En términos generales, el modelo aplica una transformación a los datos descomponiéndolos en nodos más simples llamados \textit{IMFs} (Funciones de Modo Intrínseco), eliminando o disminuyendo el ruido y separando la señal en diferentes frecuencias.
+
+El proceso de selección es el siguiente:
+\begin{enumerate}
+    \item Se identifican los mínimos y máximos locales.
+    \item Se generan dos envolventes, uno superior y uno inferior, que pasan por dichos valores mediante una interpolación cúbica o curva suave.
+    \item Se calcula el promedio de los envolventes.
+    \item Se resta este valor de la serie original y se repite el procedimiento hasta obtener una función cuya media sea cercana a cero, dando lugar al primer \textit{IMF}.
+    \item Este \textit{IMF} se resta de la serie original para obtener un residuo, con el cual se continúa iterando y generando nuevos \textit{IMFs}, hasta que el residuo final sea una función casi monótona.
+\end{enumerate}
+
+Lo anterior describe el proceso de \textit{sifting} del EMD original. La contribución específica de CEEMDAN \citep{torres2011ceemdan} consiste en asistir esta descomposición con ruido blanco adaptativo para mitigar el problema de \emph{mode mixing} (la mezcla de oscilaciones de escalas muy distintas dentro de un mismo IMF). Para ello, se generan $I$ realizaciones de ruido blanco $w_i(t) \sim N(0,1)$, $i = 1,\ldots,I$, escaladas por un coeficiente $\varepsilon_0$, que se suman a la serie original antes de aplicar EMD a cada realización. Denotando por $E_k(\cdot)$ al operador que extrae el $k$-ésimo modo mediante EMD, el primer IMF se obtiene promediando sobre las $I$ realizaciones:
+
 \begin{equation}
-    y_t = \mu_t + \varepsilon_t, \qquad \varepsilon_t = \sigma_t z_t, \qquad z_t \sim \text{i.i.d.}\; D(0,1),
+    \overline{\mathrm{IMF}}_1 = \frac{1}{I}\sum_{i=1}^{I} E_1\bigl(S(t) + \varepsilon_0\,w_i(t)\bigr).
 \end{equation}
-donde $\mu_t$ es la media condicional capturada por el modelo ARIMA, $\sigma_t$ la desviación estándar condicional y $D(0,1)$ una distribución de innovaciones estandarizada. La varianza condicional bajo el modelo GARCH$(p,q)$ se especifica como
+
+El primer residuo se calcula como $r_1(t) = S(t) - \overline{\mathrm{IMF}}_1$, y los modos siguientes se obtienen repitiendo el procedimiento sobre el residuo perturbado con una nueva realización de ruido asistido por EMD, hasta agotar el residuo. Al promediar sobre múltiples realizaciones de ruido en lugar de aplicar una única perturbación, CEEMDAN reduce el error de reconstrucción casi a cero y disminuye considerablemente el costo computacional frente a su predecesor, el EEMD (\textit{Ensemble Empirical Mode Decomposition}).
+
+La serie puede reconstruirse sumando todos los \textit{IMFs} y el residuo $R_n$:
+
 \begin{equation}
-    \sigma_t^2 = \alpha_0 + \sum_{i=1}^{q}\alpha_i\,\varepsilon_{t-i}^2 + \sum_{j=1}^{p}\beta_j\,\sigma_{t-j}^2,
+ Y(t) = \sum_{i=1}^{n} IMF_i(t) + R_n(t)
 \end{equation}
-con las restricciones de positividad $\alpha_0 > 0$, $\alpha_i \geq 0$ y $\beta_j \geq 0$.
 
-\textbf{Preprocesamiento específico.} A diferencia de los modelos de redes neuronales, el GARCH opera sobre los log-retornos $r_t^{\ln} = \ln(P_t/P_{t-1})$, calculados internamente a partir de los precios de cierre. Para mejorar el condicionamiento numérico del optimizador, los residuales se multiplican por un factor de escala de $100$ antes de la estimación; la volatilidad condicional predicha se desescala y se anualiza en la etapa de inferencia.
+donde $IMF_i(t)$ denota el $i$-ésimo modo intrínseco obtenido tras el proceso de descomposición, el cual representa un componente oscilatorio de la señal con una banda de frecuencia bien definida, y $R_n(t)$ corresponde al residuo después de extraer $n$ modos, capturando la tendencia de largo plazo o el componente no oscilatorio restante.
 
-\textbf{Filtrado de la media.} Dado que el GARCH modela la heterocedasticidad de los residuales, se ajustó previamente un modelo ARIMA a la serie de log-retornos de entrenamiento. El orden $(p, d, q)$ del ARIMA se seleccionó automáticamente minimizando el Criterio de Información de Akaike (AIC) mediante búsqueda escalonada (\textit{stepwise}), sin componente estacional. Los residuales de este modelo de media se utilizan como insumo para la estimación GARCH.
+\paragraph{b. LSTM}
+Propuesto por \cite{hochreiter1997lstm}, y posteriormente mejorado por \cite{graves2006ctc}, surge para lidiar con los problemas de desvanecimiento y explosión del gradiente, que dificultan el aprendizaje a largo plazo. El modelo consiste en cuatro redes neuronales encadenadas y diferentes bloques de memoria llamados células, entre las cuales se encuentran:
 
-\textbf{Selección de hiperparámetros.} Se evaluó una cuadrícula de configuraciones que comprende los pares $(p,q) \in \{(1,1),(1,2),(2,1),(2,2)\}$ con distribuciones de innovaciones Normal y $t$ de Student, y adicionalmente dos configuraciones GJR-GARCH$(1,1,1)$ con distribuciones $t$ y $t$ asimétrica (\textit{skewed-t}), que capturan el efecto de apalancamiento presente en series financieras. La configuración final se seleccionó como aquella con el menor AIC durante el entrenamiento, descartando los casos en que el optimizador no convergió.
+\begin{enumerate}
+    \item \textbf{Input gate}: determina qué información se incorpora en el modelo.
+    \item \textbf{Forget gate}: establece qué información debe ser descartada.
+    \item \textbf{Output gate}: regula la información que se envía al siguiente bloque de memoria.
+\end{enumerate}
 
-\textbf{Pronóstico.} La predicción se realiza con un horizonte de un paso adelante (15 minutos). Los parámetros estimados en entrenamiento se fijan y la volatilidad condicional se calcula recursivamente sobre la serie completa de residuales (entrenamiento más prueba), extrayendo únicamente los valores del período de prueba. Este esquema equivale a un pronóstico $h=1$ con información disponible hasta $t-1$, sin reestimación del modelo.
+Formalmente, en el instante $t$, sea $x_t$ la entrada, $h_{t-1}$ la salida de la célula en el instante anterior y $c_{t-1}$ el estado de memoria previo. El cálculo de la célula LSTM se realiza en los siguientes pasos \citep{hochreiter1997lstm,graves2006ctc}. Primero se calcula el valor candidato de memoria:
+
+\begin{equation}
+    \tilde{c}_t = \tanh\bigl(W_c \cdot [h_{t-1}, x_t] + b_c\bigr),
+\end{equation}
+
+donde $W_c$ y $b_c$ son, respectivamente, la matriz de pesos y el sesgo asociados. Los gates de entrada y de olvido, que controlan cuánta información nueva se incorpora y cuánta información pasada se descarta, se calculan con una activación sigmoide $\sigma(\cdot)$:
+
+\begin{equation}
+    i_t = \sigma\bigl(W_i \cdot [h_{t-1}, x_t] + b_i\bigr),
+    \qquad
+    f_t = \sigma\bigl(W_f \cdot [h_{t-1}, x_t] + b_f\bigr).
+\end{equation}
+
+El estado de memoria se actualiza combinando el estado anterior (ponderado por el \textit{forget gate}) con el valor candidato (ponderado por el \textit{input gate}):
+
+\begin{equation}
+    c_t = f_t * c_{t-1} + i_t * \tilde{c}_t,
+\end{equation}
+
+donde $*$ denota el producto elemento a elemento. Finalmente, el \textit{output gate} controla qué parte del estado de memoria se expone como salida de la célula:
+
+\begin{equation}
+    o_t = \sigma\bigl(W_o \cdot [h_{t-1}, x_t] + b_o\bigr),
+    \qquad
+    h_t = o_t * \tanh(c_t).
+\end{equation}
+
+Esto le permite recordar patrones relevantes a largo plazo y descartar ruido, lo cual resulta útil al trabajar con series de alta variabilidad. Asimismo, para prevenir el sobreentrenamiento, el modelo descarta de manera aleatoria algunas unidades, de acuerdo a su aprendizaje a través del entrenamiento, dado que con este empieza a reconocer patrones estadísticos.
+
+El método CEEMDAN-LSTM propone entrenar redes neuronales LSTM independientes para cada \textit{IMF} y para el residuo, aplicando previamente una normalización de los datos. Cada red cuenta con su propio ajuste de hiperparámetros \cite{cao2019financial}. Finalmente, en la fase de predicción, los resultados de cada LSTM se combinan para reconstruir la señal, que corresponde a la suma de los \textit{IMFs} pronosticados más el residuo pronosticado:
+
+\begin{equation}
+ \hat{Y}(t) = \sum_{i=1}^{n} \widehat{IMF}_i(t) + \widehat{R}_n(t)
+\end{equation}
+
+donde $\widehat{IMF}_i(t)$ representa la predicción del $i$-ésimo modo intrínseco e $\widehat{R}_n(t)$ corresponde a la predicción del residuo. La suma de estas predicciones permite recuperar una estimación $\hat{Y}(t)$ de la señal original en el dominio temporal.
+
 
 \subsection{Modelos de redes neuronales: CEEMDAN-LSTM}
 
-El modelo CEEMDAN-LSTM combina la descomposición adaptativa de señales no estacionarias mediante CEEMDAN (\textit{Complete Ensemble Empirical Mode Decomposition with Adaptive Noise}, \citealt{torres2011ceemdan}) con una red neuronal recurrente de tipo LSTM (\textit{Long Short-Term Memory}, \citealt{hochreiter1997lstm}). La motivación de esta arquitectura híbrida es reducir la no estacionalidad y el ruido de las series de volatilidad intradía antes de su modelado secuencial \citep{cao2019financial}.
+La implementación se apoya en tres librerías principales de Python: \texttt{PyEMD} para el cálculo de la descomposición CEEMDAN, \texttt{PyTorch} para la definición y el entrenamiento de la red LSTM, y \texttt{scikit-learn} para la normalización de los datos. A continuación se detallan las decisiones de construcción del conjunto de datos y de la arquitectura.
 
-\textbf{Construcción de características.} La serie de retornos simples se descompone en sus Funciones de Modo Intrínseco (IMFs, \textit{Intrinsic Mode Functions}) mediante el algoritmo CEEMDAN, implementado con la librería \texttt{PyEMD}. Para cada instante $t$, el vector de entrada a la red se construye concatenando el vector de IMFs evaluado en $t$ con el valor de volatilidad realizada en ese mismo instante:
+\textbf{Construcción de características.} La serie de retornos simples se descompone en sus Funciones de Modo Intrínseco (IMFs, \textit{Intrinsic Mode Functions}) mediante el algoritmo CEEMDAN, aplicado con los parámetros por defecto de \texttt{PyEMD} (sin ajuste manual del número de conjuntos o de la amplitud del ruido). Para cada instante $t$, el vector de entrada a la red se construye concatenando el vector de IMFs evaluado en $t$ con el valor de volatilidad realizada en ese mismo instante:
 \begin{equation}
     \mathbf{x}_t = \bigl[\mathrm{IMF}_1(t),\;\mathrm{IMF}_2(t),\;\ldots,\;\mathrm{IMF}_K(t),\;\hat{\sigma}_t\bigr] \in \mathbb{R}^{K+1},
 \end{equation}
 donde $K$ es el número de IMFs producidas por la descomposición. La variable objetivo es la volatilidad del período siguiente: $y_t = \hat{\sigma}_{t+1}$.
 
-\textbf{Normalización.} Las matrices de características y el vector objetivo se normalizaron de forma independiente mediante un escalador Min-Max, ajustado exclusivamente sobre el conjunto de entrenamiento y aplicado al conjunto de prueba sin reestimación, para evitar fuga de información (\textit{data leakage}).
+\textbf{Normalización.} Las matrices de características y el vector objetivo se normalizaron de forma independiente mediante un escalador Min-Max (\texttt{MinMaxScaler} de \texttt{scikit-learn}), ajustado exclusivamente sobre el conjunto de entrenamiento y aplicado al conjunto de prueba sin reestimación, para evitar fuga de información (\textit{data leakage}). Sobre las series ya normalizadas se construyeron secuencias temporales de longitud $W = 20$ observaciones mediante una ventana deslizante, empleadas como entrada a la red.
 
-\textbf{Arquitectura de la red.} Se construyeron secuencias temporales de longitud $W = 20$ observaciones como entrada. La arquitectura implementada consta de:
+\textbf{Arquitectura de la red.} Implementada como un módulo de \texttt{PyTorch}, la red consta de:
 \begin{itemize}
-    \item Una capa LSTM recurrente con $H = 128$ unidades ocultas, $L = 2$ capas apiladas (\textit{stacked}) y una tasa de abandono (\textit{dropout}) de $p_d = 0.2$ entre capas para regularización.
+    \item Una capa LSTM recurrente (\texttt{nn.LSTM}) con $H = 128$ unidades ocultas, $L = 2$ capas apiladas (\textit{stacked}) y una tasa de abandono (\textit{dropout}) de $p_d = 0.2$ entre capas para regularización.
     \item Una capa densa \texttt{Linear}$(128 \to 64)$ seguida de una activación ReLU.
-    \item Una capa de salida \texttt{Linear}$(64 \to 1)$ que produce el pronóstico escalar de volatilidad.
+    \item Una capa de salida \texttt{Linear}$(64 \to 1)$ que produce el pronóstico escalar de volatilidad, tomando únicamente la salida del último paso temporal de la secuencia LSTM.
 \end{itemize}
 
-\textbf{Entrenamiento.} La red se optimizó mediante retropropagación con el optimizador Adam \citep{kingma2015adam}, con una tasa de aprendizaje $\eta = 10^{-3}$. La función de pérdida empleada fue el Error Cuadrático Medio:
+\textbf{Entrenamiento.} La red se optimizó mediante retropropagación con el optimizador Adam \citep{kingma2015adam} de \texttt{PyTorch}, con una tasa de aprendizaje $\eta = 10^{-3}$. La función de pérdida empleada fue el Error Cuadrático Medio:
 \begin{equation}
     \mathcal{L}_{\mathrm{MSE}} = \frac{1}{N}\sum_{i=1}^{N}(\hat{y}_i - y_i)^2.
 \end{equation}
-El entrenamiento se realizó durante $80$ épocas con un tamaño de lote de $32$ muestras. Los datos no fueron permutados (\textit{shuffle = False}) con el fin de preservar la estructura temporal de las secuencias. Se fijaron semillas aleatorias (\texttt{seed = 42}) para garantizar la reproducibilidad de los resultados. La predicción sobre el conjunto de prueba se obtiene en modo de evaluación (sin cómputo de gradientes) en un único paso de inferencia por lotes, sin reentrenamiento.
+El entrenamiento se realizó durante $80$ épocas con un tamaño de lote de $32$ muestras, cargadas mediante un \texttt{DataLoader} de \texttt{PyTorch}. Los datos no fueron permutados (\textit{shuffle = False}) ni en entrenamiento ni en prueba, con el fin de preservar la estructura temporal de las secuencias. Se fijaron semillas aleatorias (\texttt{seed = 42}) tanto para \texttt{NumPy} como para \texttt{PyTorch}, con el fin de garantizar la reproducibilidad de los resultados. El entrenamiento se ejecuta sobre GPU cuando está disponible, y sobre CPU en caso contrario. La predicción sobre el conjunto de prueba se obtiene en modo de evaluación (sin cómputo de gradientes) en un único paso de inferencia por lotes, sin reentrenamiento.
 
-\textbf{Nota sobre la variante de implementación.} La formulación original de \citet{cao2019financial} propone entrenar una red LSTM independiente para cada IMF y para el residuo, combinando luego los pronósticos individuales para reconstruir la señal según la ecuación $\hat{Y}(t) = \sum_{i=1}^{n}\widehat{\mathrm{IMF}}_i(t) + \widehat{R}_n(t)$. En la implementación desarrollada en este trabajo se adopta una arquitectura unificada: una única red LSTM recibe en cada paso temporal el vector de todos los IMFs concatenados con la volatilidad realizada $\hat{\sigma}_t$, y produce directamente el pronóstico $\hat{\sigma}_{t+1}$. Esta decisión de diseño reduce el costo computacional de forma significativa —de $K+1$ modelos independientes a uno solo— y elimina la acumulación de errores de pronóstico entre redes separadas. Empíricamente, enfoques similares de vectorización de IMFs como entrada a una única red han reportado resultados competitivos respecto a la formulación multi-modelo \citep{lin2021ceemdanlstm}, por lo que la comparación con los demás modelos del estudio se mantiene válida.
+\textbf{Nota sobre la variante de implementación.} La formulación original de \citet{cao2019financial} propone entrenar una red LSTM independiente para cada IMF y para el residuo, combinando luego los pronósticos individuales para reconstruir la señal según la ecuación de reconstrucción presentada anteriormente. En la implementación desarrollada en este trabajo se adopta una arquitectura unificada: una única red LSTM recibe en cada paso temporal el vector de todos los IMFs concatenados con la volatilidad realizada $\hat{\sigma}_t$, y produce directamente el pronóstico $\hat{\sigma}_{t+1}$. Esta decisión de diseño reduce el costo computacional de forma significativa —de $K+1$ modelos independientes a uno solo— y elimina la acumulación de errores de pronóstico entre redes separadas. Empíricamente, enfoques similares de vectorización de IMFs como entrada a una única red han reportado resultados competitivos respecto a la formulación multi-modelo \citep{lin2021ceemdanlstm}, por lo que la comparación con los demás modelos del estudio se mantiene válida.
+
+Es importante señalar que la implementación del modelo CEEMDAN-LSTM presenta una limitación metodológica: al aplicarse la descomposición CEEMDAN sobre la serie completa antes de la partición entrenamiento/prueba, se introduce una fuga de información (look-ahead bias), ya que el algoritmo no es causal y cada punto descompuesto incorpora información futura respecto al instante a predecir. Esta práctica reproduce la metodología original de \citet{cao2019financial}, pero ha sido señalada en la literatura reciente como fuente de sobreestimación del desempeño en modelos EMD/CEEMDAN. Por lo tanto, los resultados de este modelo deben interpretarse como una evaluación pseudo-fuera-de-muestra, lo cual se reconoce como una deficiencia de la implementación más que como un hallazgo del presente trabajo.
+
+
+\section{Modelo PSOQRNN}
+
+\subsection[PSOQRNN]{PSOQRNN}
+
+El modelo PSOQRNN surge como una propuesta híbrida que integra técnicas de optimización y aprendizaje automático con el propósito de mejorar la predicción de series financieras. Su planteamiento combina la eficiencia exploratoria del algoritmo PSO (\cite{kennedy1995}) en la búsqueda de parámetros con la capacidad del QRNN (\cite{taylor2000qrnn} para capturar dinámicas no lineales bajo un esquema de pérdida cuantílica. A continuación, se describen los componentes principales de este enfoque.
+
+\paragraph{a. PSO}
+El algoritmo PSO es una técnica de optimización metaheurística inspirada en el comportamiento colectivo de sistemas naturales, como bandadas de aves o bancos de peces. Fue propuesto por \cite{kennedy1995} como una alternativa eficiente para resolver problemas de optimización en espacios complejos, especialmente cuando no se dispone de información completa sobre la función objetivo.
+
+El algoritmo inicia generando un enjambre de $n_p$ partículas, cada una representando una posible solución al problema de optimización (en este caso, un vector candidato de pesos y sesgos de la red); las posiciones iniciales se generan de manera aleatoria dentro de un rango especificado, y las velocidades iniciales también se generan de forma aleatoria. La velocidad de cada partícula es actualizada con respecto a su antigua posición y el mejor vecino, además de la mejor partícula global. Esto se repite hasta que el criterio de convergencia se encuentra satisfecho, o hasta agotar un número máximo de iteraciones.
+
+La actualización de cada partícula combina tres componentes: (i) su velocidad anterior, ponderada por el factor de inercia $\omega$, que favorece la continuidad de la trayectoria de búsqueda y controla el balance entre exploración y explotación del espacio de soluciones; (ii) un componente cognitivo, que atrae a la partícula hacia la mejor posición que ella misma ha encontrado; y (iii) un componente social, que la atrae hacia la mejor posición encontrada por todo el enjambre. A diferencia de los métodos de optimización basados en gradiente, el PSO no requiere que la función objetivo sea diferenciable ni continua, y al explorar el espacio de soluciones con múltiples partículas de forma simultánea reduce el riesgo de quedar atrapado en mínimos locales. Formalmente, para cada partícula $i$ en la iteración $t$, la velocidad y posición se actualizan de la siguiente manera:
+
+\begin{equation}
+v_i^{t+1} = \omega v_i^{t} + c_1 r_1 (pbest_i - x_i^{t}) + c_2 r_2 (gbest - x_i^{t}),
+\end{equation}
+
+\begin{equation}
+x_i^{t+1} = x_i^{t} + v_i^{t+1},
+\end{equation}
+
+donde $v_i^{t}$ es la velocidad de la partícula $i$ en la iteración $t$, $x_i^{t}$ su posición, $pbest_i$ la mejor posición personal encontrada por la partícula, $gbest$ la mejor posición global encontrada por todo el enjambre, $\omega$ es el factor de inercia, $c_1$ y $c_2$ son coeficientes de aceleración, y $r_1, r_2 \sim U(0,1)$ son variables aleatorias uniformes.
+
+\paragraph{b. QRNN}
+El modelo propuesto por \cite{taylor2000qrnn} es una red neuronal recurrente de una sola capa oculta, que consiste en una entrada de valores que están conectados a la capa oculta que se encuentra conectada a una sola neurona de resultado. La diferencia de esta con redes tradicionales se encuentra en el proceso de entrenamiento, dado que su función de pérdida no es el MSE (Error cuadrático medio), sino la pérdida cuantílica, que penaliza errores de forma asimétrica dependiendo del cuantil que se quiera encontrar.
+
+El método combinado propuesto por \cite{pradeepkumar2017forecasting} utiliza el PSO para estimar los pesos y el bias, que usualmente en el QRNN es realizado por medio de BP (Back propagation) el cual es un método que se demora en converger y puede caer en la trampa de mínimos locales. Por el contrario, el PSO ayuda a converger de una manera más rápida y puede encontrar un valor más cerca del mínimo global al convergir.
+
+Formalmente, sea $\mathbf{X}_t = (X_{1,t}, \ldots, X_{m,t})$ el vector de $m$ variables de entrada en el instante $t$. Cada una de las $n_H$ neuronas ocultas calcula
+
+\begin{equation}
+    g_{j,t} = \tanh\Bigl(\sum_{i=1}^{m} X_{i,t}\,w_{ij}^{h} + b_j^{h}\Bigr), \qquad j = 1,\ldots,n_H,
+\end{equation}
+
+donde $w_{ij}^{h}$ es el peso de la conexión entre la $i$-ésima entrada y la $j$-ésima neurona oculta, y $b_j^{h}$ es el sesgo de dicha neurona. La estimación del cuantil condicional $\tau$ en el instante $t$, $\hat{y}_t^{\tau}$, se obtiene en la capa de salida como
+
+\begin{equation}
+    \hat{y}_t^{\tau} = f\Bigl(\sum_{j=1}^{n_H} g_{j,t}\,w_j^{o} + b^{o}\Bigr),
+\end{equation}
+
+donde $w_j^{o}$ es el peso de la conexión entre la $j$-ésima neurona oculta y la neurona de salida, $b^{o}$ es el sesgo de salida, y $f(\cdot)$ es la función de activación de la capa de salida. A diferencia de una red feedforward tradicional entrenada para estimar la media condicional, aquí los pesos y sesgos se estiman minimizando la pérdida cuantílica evaluada en un $\tau$ específico, de modo que la misma arquitectura puede producir estimaciones de distintos cuantiles condicionales según el valor de $\tau$ empleado en el entrenamiento.
+
+La formulación genérica de la pérdida cuantílica, donde $L_{\tau}$ representa la función de pérdida asociada al cuantil $\tau$ utilizada como función objetivo en el modelo QRNN, se define como:
+
+\begin{equation}
+L_{\tau}(y, \hat{y}) =
+\begin{cases}
+\tau (y - \hat{y}), & \text{si } y \geq \hat{y}, \\
+(\tau - 1)(y - \hat{y}), & \text{si } y < \hat{y},
+\end{cases}
+\end{equation}
+
+donde $y$ representa el valor real, $\hat{y}$ la predicción del modelo, y $\tau \in (0,1)$ es el cuantil de interés. Esta función penaliza de manera asimétrica los errores de predicción, lo que permite que el modelo se ajuste directamente a la estimación del cuantil especificado en lugar del valor esperado.
 
 \subsection{Modelos de redes neuronales: PSOQRNN}
 
-El modelo PSOQRNN integra una Red Neuronal de Regresión Cuantílica (QRNN, \textit{Quantile Regression Neural Network}, \citealt{taylor2000qrnn}) con el algoritmo de Optimización por Enjambre de Partículas (PSO, \textit{Particle Swarm Optimization}, \citealt{kennedy1995}) como método de entrenamiento, siguiendo la propuesta de \citet{pradeepkumar2017forecasting}. La arquitectura QRNN estima directamente el cuantil condicional de la volatilidad, mientras que el PSO sustituye a la retropropagación en la búsqueda de los pesos óptimos de la red con el objetivo de evitar la convergencia a mínimos locales.
+El modelo PSOQRNN integra una Red Neuronal de Regresión Cuantílica (QRNN, \textit{Quantile Regression Neural Network}, \citealt{taylor2000qrnn}) con el algoritmo de Optimización por Enjambre de Partículas (PSO, \textit{Particle Swarm Optimization}, \citealt{kennedy1995}) como método de entrenamiento, siguiendo la propuesta de \citet{pradeepkumar2017forecasting}. La arquitectura QRNN estima directamente el cuantil condicional de la volatilidad, mientras que el PSO sustituye a la retropropagación en la búsqueda de los pesos óptimos de la red con el objetivo de evitar la convergencia a mínimos locales. La red se implementó como un módulo de \texttt{PyTorch}, mientras que el algoritmo PSO se implementó de manera propia (sin recurrir a una librería especializada de metaheurísticas), operando directamente sobre el vector de pesos de la red mediante \texttt{NumPy}.
 
-\textbf{Variables de entrada.} El modelo recibe dos predictores escalares para cada observación $t$:
+\textbf{Variables de entrada y variable objetivo.} El modelo recibe dos predictores escalares para cada observación $t$ y estima la volatilidad realizada del mismo instante:
 \begin{equation}
-    \mathbf{x}_t = \bigl[\hat{\sigma}_{t-1},\;\varepsilon_t\bigr],
+    \mathbf{x}_t = \bigl[\hat{\sigma}_{t-1},\;\varepsilon_t\bigr] \quad \longrightarrow \quad y_t = \hat{\sigma}_t,
 \end{equation}
-donde $\hat{\sigma}_{t-1}$ es la volatilidad realizada del período anterior y $\varepsilon_t = r_t - \bar{r}$ es la innovación del retorno en el instante $t$. Esta especificación captura la persistencia de la volatilidad junto con el efecto de los choques recientes sobre la misma.
+donde $\hat{\sigma}_{t-1}$ es la volatilidad realizada del período anterior y $\varepsilon_t = r_t - \bar{r}$ es la innovación del retorno en el instante $t$. Esta especificación captura la persistencia de la volatilidad junto con el efecto de los choques recientes sobre la misma. Dado que la volatilidad realizada se calcula sobre una ventana móvil de $\omega = 252$ observaciones (Sección~\ref{sec:preparacion-general}), la serie de innovaciones se desplaza en ese mismo número de períodos antes de emparejarla con la serie de volatilidad, de modo que cada par de entrada-salida corresponda al mismo instante $t$.
 
 \textbf{Arquitectura de la QRNN.} La red está compuesta por:
 \begin{itemize}
@@ -214,88 +588,370 @@ donde $\hat{\sigma}_{t-1}$ es la volatilidad realizada del período anterior y $
 \end{itemize}
 El total de parámetros entrenables es $(2 \times 3 + 3) + (3 \times 1 + 1) = 13$.
 
-\textbf{Función de pérdida cuantílica.} El entrenamiento busca minimizar la pérdida cuantílica para $\tau = 0.5$ (mediana):
-\begin{equation}
-    \mathcal{L}_\tau(y, \hat{y}) = \mathbb{E}\bigl[\rho_\tau(y - \hat{y})\bigr], \qquad \rho_\tau(u) = u\,\bigl(\tau - \mathbf{1}_{u < 0}\bigr),
-\end{equation}
-lo que equivale al Error Absoluto Medio cuando $\tau = 0.5$, proporcionando robustez frente a valores atípicos respecto a la pérdida cuadrática.
+\textbf{Función de pérdida cuantílica.} El entrenamiento busca minimizar la pérdida cuantílica definida en la sección anterior, evaluada en $\tau = 0.5$ (mediana), valor que reportó el mejor desempeño en \citet{pradeepkumar2017forecasting}. En $\tau = 0.5$ esta pérdida equivale al Error Absoluto Medio, proporcionando robustez frente a valores atípicos respecto a la pérdida cuadrática.
 
-\textbf{Optimización PSO.} El algoritmo PSO actualiza iterativamente la posición $\mathbf{x}_i^{(t)}$ y la velocidad $\mathbf{v}_i^{(t)}$ de cada partícula $i$ en el espacio de parámetros de la red:
-\begin{align}
-    \mathbf{v}_i^{(t+1)} &= \omega\,\mathbf{v}_i^{(t)} + c_1 r_1 \bigl(\mathbf{p}_i - \mathbf{x}_i^{(t)}\bigr) + c_2 r_2 \bigl(\mathbf{g} - \mathbf{x}_i^{(t)}\bigr), \\
-    \mathbf{x}_i^{(t+1)} &= \mathbf{x}_i^{(t)} + \mathbf{v}_i^{(t+1)},
-\end{align}
-donde $\mathbf{p}_i$ es la mejor posición personal de la partícula $i$, $\mathbf{g}$ es la mejor posición global del enjambre, $r_1, r_2 \sim U(0,1)$ son variables aleatorias uniformes, y los hiperparámetros se configuraron como: $\omega = 0.8$ (inercia), $c_1 = c_2 = 2.0$ (coeficientes de aceleración), $v_{\min} = -5$, $v_{\max} = 5$ (límites de velocidad), enjambre de $n_p = 60$ partículas y un máximo de $T = 5\,000$ iteraciones. La velocidad se recorta (\textit{clipping}) en cada iteración para mantenerla dentro de $[v_{\min}, v_{\max}]$. La predicción final se obtiene mediante un único paso de inferencia hacia adelante sobre el conjunto de prueba, sin reentrenamiento.
+\textbf{Optimización PSO.} A diferencia de la mayoría de librerías de metaheurísticas disponibles, en las que el optimizador es independiente del modelo que se ajusta, en esta implementación el PSO se construyó específicamente para operar sobre el vector de pesos de la QRNN: cada partícula \emph{es} un vector candidato de los 13 pesos y sesgos de la red (la misma cantidad de parámetros entrenables descrita en la arquitectura anterior), de modo que el espacio de búsqueda del enjambre coincide exactamente con el espacio de parámetros del modelo. Siguiendo la regla de actualización de velocidad y posición presentada en la sección anterior, el enjambre se inicializa con posiciones aleatorias uniformes en $[0,1]^{13}$ y velocidades aleatorias uniformes en $[v_{\min}, v_{\max}]$.
+
+El procedimiento de ajuste se ejecuta en dos fases. En la fase de inicialización, cada una de las $n_p$ partículas se evalúa una única vez: sus pesos se asignan temporalmente a la red mediante los mismos parámetros de \texttt{PyTorch}, se calcula la pérdida cuantílica (Ecuación anterior) de la red sobre el conjunto de entrenamiento con $\tau = 0.5$, y ese valor se registra como su mejor posición personal; la partícula con menor pérdida define la mejor posición global inicial. En la fase iterativa, en cada una de las $T = 5\,000$ iteraciones se actualizan primero las velocidades y posiciones de las $n_p = 60$ partículas siguiendo la regla de actualización, recortando (\textit{clipping}) la velocidad resultante para mantenerla dentro de $[v_{\min}, v_{\max}] = [-5, 5]$; después, cada partícula se reevalúa con la misma función de pérdida cuantílica, actualizando su mejor posición personal y, si corresponde, la mejor posición global del enjambre. Los hiperparámetros del algoritmo se configuraron como $\omega = 0.8$ (inercia) y $c_1 = c_2 = 2.0$ (coeficientes de aceleración). En total, el procedimiento evalúa la pérdida cuantílica de la red $n_p \times (T+1) = 60 \times 5{,}001 = 300{,}060$ veces, sin que en ningún momento se calcule un gradiente de la red: la búsqueda es enteramente derivada de comparar valores de la función de pérdida entre partículas. Al finalizar las iteraciones, los pesos de la mejor partícula global se asignan a la red mediante \texttt{vector\_to\_parameters} de \texttt{PyTorch}. La predicción final se obtiene mediante un único paso de inferencia hacia adelante sobre el conjunto de prueba, sin reentrenamiento.
+
+\textbf{Nota sobre la procedencia de los hiperparámetros.} Los valores $n_p = 60$, $T = 5\,000$, $\omega = 0.8$, $c_1 = c_2 = 2.0$ y $[v_{\min}, v_{\max}] = [-5, 5]$ no se calibraron de manera independiente en este trabajo, sino que se tomaron directamente de la Sección 5.3 de \citet{pradeepkumar2017forecasting}, donde los autores reportan estos mismos valores como los que produjeron mejor desempeño tras experimentación exhaustiva sobre sus ocho series financieras. De manera similar, se fijó $n_H = 3$ neuronas en la capa oculta para todos los activos del presente estudio; esto difiere de \citet{pradeepkumar2017forecasting}, quienes calibran $n_H$ de forma independiente para cada conjunto de datos (entre 2 y 5 neuronas, según la Tabla 3 del artículo original). Se optó por un valor único de $n_H$ para mantener la comparabilidad de la arquitectura entre los seis activos analizados en este trabajo, los cuales difieren de los ocho activos usados en el estudio original.
+
 
 \section{Evaluación y análisis de resultados}
+\label{sec:evaluacion}
 
 En esta sección se presenta el análisis comparativo del desempeño predictivo de los tres modelos evaluados ---GARCH, CEEMDAN-LSTM y PSOQRNN--- sobre cada uno de los seis activos financieros del estudio. La comparación se realiza mediante las métricas MAE y RMSE sobre el conjunto de prueba, complementadas con el estadístico de Diebold--Mariano (DM) para contrastar formalmente la superioridad de los modelos \textit{challenger} respecto al GARCH como línea base. En todos los tests DM presentados, la hipótesis nula es la igualdad de pérdida de predicción entre los dos modelos comparados; un $p$-valor $\ll 0.001$ indica rechazo de dicha hipótesis, es decir, diferencia estadísticamente significativa en el desempeño. Los resultados completos pueden explorarse de forma interactiva en el siguiente dashboard: \url{https://sl1nk.com/rhrfgdr}.
 
+\subsection{Métricas de evaluación y test estadístico}
+
+Para cuantificar el desempeño predictivo de los modelos se emplean dos métricas de error ampliamente aceptadas en la literatura, y se complementan con una prueba de hipótesis formal que permite establecer si las diferencias observadas entre modelos son estadísticamente significativas. Sea $y_t$ el valor observado (volatilidad realizada) y $\hat{y}_t$ el valor pronosticado por un modelo dado, para $t = 1, \ldots, n$ observaciones del conjunto de prueba.
+
+\textbf{(i) Error cuadrático medio (RMSE, \textit{Root Mean Squared Error}).} Se define como
+
+\begin{equation}
+    \text{RMSE} = \sqrt{\frac{1}{n}\sum_{t=1}^{n}\left(y_t - \hat{y}_t\right)^2}.
+\end{equation}
+
+Al elevar al cuadrado cada error antes de promediar, esta métrica penaliza de forma desproporcionada los errores de mayor magnitud, por lo que resulta especialmente sensible a la presencia de valores atípicos y a los picos abruptos de volatilidad característicos de las series financieras intradía. Se expresa en las mismas unidades que la variable de interés, lo que facilita su interpretación directa \cite{chai2014root}.
+
+\textbf{(ii) Error absoluto medio (MAE, \textit{Mean Absolute Error}).} Se define como
+
+\begin{equation}
+    \text{MAE} = \frac{1}{n}\sum_{t=1}^{n}\left|y_t - \hat{y}_t\right|.
+\end{equation}
+
+A diferencia del RMSE, el MAE pondera todos los errores de forma lineal e igualitaria, sin sobredimensionar el efecto de los valores atípicos. Por esta razón constituye una medida más robusta del error típico esperado, y su comparación conjunta con el RMSE permite diagnosticar la presencia de errores puntuales grandes: una brecha amplia entre RMSE y MAE es indicativa de una distribución de errores con colas pesadas \cite{willmott2005advantages}.
+
+\paragraph{Test de Diebold--Mariano (DM).}
+Las métricas RMSE y MAE permiten comparar el nivel de error de dos modelos, pero no indican si la diferencia observada entre ellos es estadísticamente significativa o si podría atribuirse al azar. Para resolver esta limitación se emplea el test de Diebold--Mariano \citep{diebold1995comparing}, diseñado específicamente para contrastar la igualdad de precisión predictiva entre dos pronósticos.
+
+Sean $e_{1,t} = y_t - \hat{y}_{1,t}$ y $e_{2,t} = y_t - \hat{y}_{2,t}$ los errores de pronóstico de dos modelos en competencia (en este trabajo, el modelo GARCH como línea base y cada modelo \textit{challenger}, CEEMDAN-LSTM o PSOQRNN, respectivamente). Se define la serie de diferencial de pérdida como
+
+\begin{equation}
+    d_t = L(e_{1,t}) - L(e_{2,t}), \qquad t = 1, \ldots, n,
+\end{equation}
+
+donde $L(\cdot)$ es una función de pérdida; en este estudio se utiliza la pérdida cuadrática $L(e_{i,t}) = e_{i,t}^{2}$, consistente con la métrica RMSE reportada. El contraste de hipótesis se plantea como
+
+\begin{equation}
+\begin{aligned}
+    H_0 &: \mathbb{E}[d_t] = 0 \quad \text{(igual precisión predictiva)}, \\
+    H_1 &: \mathbb{E}[d_t] \neq 0 \quad \text{(precisión predictiva distinta)}.
+\end{aligned}
+\end{equation}
+
+El estadístico de prueba se construye a partir de la media muestral del diferencial de pérdida, $\bar{d} = \frac{1}{n}\sum_{t=1}^{n} d_t$, y de una estimación consistente de su varianza de largo plazo:
+
+\begin{equation}
+    DM = \frac{\bar{d}}{\sqrt{\widehat{V}(\bar{d})}}, \qquad
+    \widehat{V}(\bar{d}) = \frac{1}{n}\left[\hat{\gamma}_0 + 2\sum_{k=1}^{h-1}\hat{\gamma}_k\right],
+\end{equation}
+
+donde $\hat{\gamma}_k = \frac{1}{n}\sum_{t=k+1}^{n}(d_t - \bar{d})(d_{t-k} - \bar{d})$ es la autocovarianza muestral de $d_t$ en el rezago $k$, y $h$ es el horizonte de pronóstico. Dado que en este trabajo todos los modelos se evalúan bajo un esquema de pronóstico a un paso adelante ($h = 1$), la corrección por autocorrelación se anula y la varianza se reduce a la varianza muestral simple, $\widehat{V}(\bar{d}) = \hat{\gamma}_0 / n$.
+
+Bajo $H_0$ y condiciones de regularidad asintótica, el estadístico se distribuye $DM \sim N(0,1)$ \citep{diebold1995comparing}. Se rechaza $H_0$ a un nivel de significancia $\alpha$ cuando el $p$-valor asociado (bajo la distribución normal estándar de dos colas) es menor que $\alpha$; en tal caso se concluye que las diferencias de precisión predictiva entre el modelo \textit{challenger} y el GARCH son estadísticamente significativas, y el signo de $\bar{d}$ (o de $DM$) indica cuál de los dos modelos exhibe la menor pérdida esperada. En la Sección~\ref{sec:evaluacion} se reportan los valores del estadístico DM y su $p$-valor asociado para cada activo y cada modelo \textit{challenger} frente al GARCH.
+
+Estas métricas combinan valoración absoluta del error (RMSE, MAE) con comparación estadística formal (DM), permitiendo evaluar tanto el \emph{nivel} como la \emph{superioridad} de desempeño predictivo.
+
 \subsection{Bitcoin (BTC-USD)}
+
+El Bitcoin constituye el activo con mayor número de observaciones de prueba de todo el estudio (2\,773 registros de 15 minutos), y su perfil de volatilidad intradía es el más elevado y con racimos más pronunciados entre los seis activos analizados, alternando tramos de calma relativa (volatilidad realizada cercana a $0{,}03$--$0{,}04$) con episodios de variabilidad muy alta (picos por encima de $0{,}07$). Esta combinación de alta magnitud y alta frecuencia de cambio de régimen lo convierte en una prueba particularmente exigente para los tres modelos.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{las_figuras/bitcoin.png}
-    \caption{Predicción de la volatilidad del Bitcoin (BTC-USD) en el conjunto de prueba. Los modelos CEEMDAN-LSTM y PSOQRNN se comparan contra el GARCH como modelo base.}
-    \label{fig:bitcoin}
+    \includegraphics[width=0.8\textwidth]{las_figuras/bitcoin_garch.png}
+    \caption{GARCH: volatilidad predicha vs. realizada --- Bitcoin (BTC-USD).}
+    \label{fig:bitcoin-garch}
 \end{figure}
 
-El Bitcoin constituye el activo con mayor número de observaciones de prueba y presenta una volatilidad intradía elevada con racimos pronunciados. Como se observa en la Figura~\ref{fig:bitcoin}, el modelo GARCH sobreestima sistemáticamente la volatilidad, produciendo predicciones muy por encima de los valores realizados. El modelo PSOQRNN logra el mejor ajuste visual y numérico: obtiene un MAE de $1{,}23 \times 10^{-3}$ y un RMSE de $1{,}74 \times 10^{-3}$, lo que representa una reducción del 91{,}3\,\% en RMSE respecto al GARCH ($p$-valor DM $= 1{,}25 \times 10^{-53}$, $p \ll 0.001$). El modelo CEEMDAN-LSTM ocupa la posición intermedia con MAE de $5{,}15 \times 10^{-3}$ y RMSE de $6{,}21 \times 10^{-3}$ (reducción del 68{,}9\,\% en RMSE, $p$-valor DM $= 9{,}26 \times 10^{-46}$), con mejoras también estadísticamente significativas frente a la línea base, aunque inferiores a las del PSOQRNN. El orden de desempeño es: PSOQRNN $>$ CEEMDAN-LSTM $>$ GARCH.
+Como se observa en la Figura~\ref{fig:bitcoin-garch}, el GARCH sobreestima sistemáticamente la volatilidad y su predicción oscila con una amplitud mucho mayor que la serie real: mientras la volatilidad realizada se mantiene casi siempre por debajo de $0{,}08$, el modelo produce picos recurrentes que superan $0{,}10$ y llega hasta cerca de $0{,}24$ alrededor de finales de junio, un valor más de tres veces superior al máximo observado en la serie real ese mismo día. Este comportamiento es consistente con lo esperado del esquema de pronóstico implementado: dado que la volatilidad condicional se calcula recursivamente a partir de los residuales del ARIMA (Sección~\ref{sec:garch-por-activo} y el capítulo del modelo GARCH), cualquier residual grande en el conjunto de prueba se traduce en un salto inmediato y pronunciado de $\sigma_t^2$, sin el suavizamiento que exhibe la volatilidad realizada por construcción (al ser una desviación estándar móvil sobre una ventana de 252 observaciones). El resultado es una predicción que reacciona de forma exagerada a movimientos puntuales del retorno, en lugar de capturar la tendencia de fondo de la serie.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{las_figuras/bitcoin_ceemdan.png}
+    \caption{CEEMDAN-LSTM: volatilidad predicha vs. realizada --- Bitcoin (BTC-USD).}
+    \label{fig:bitcoin-ceemdan}
+\end{figure}
+
+El CEEMDAN-LSTM presenta un comportamiento cualitativamente distinto: la Figura~\ref{fig:bitcoin-ceemdan} muestra que el modelo sí logra reconocer la forma general de la serie --- sube en los mismos tramos en que sube la volatilidad real y baja cuando esta baja ---, pero de manera sistemáticamente rezagada y con menor amplitud. En el primer pico de la muestra (en torno al 7 de junio) la predicción alcanza aproximadamente $0{,}068$ frente a un máximo real de $0{,}076$, y en el repunte de finales de junio el modelo se estabiliza cerca de $0{,}05$ mientras la serie real llega a $0{,}065$. Este patrón de subestimación y rezago es coherente con la arquitectura empleada: al normalizar conjuntamente las IMFs y la volatilidad realizada con un escalador Min-Max ajustado en entrenamiento, y al construir secuencias de $W=20$ observaciones como entrada, la red tiende a suavizar las transiciones abruptas del régimen de volatilidad, produciendo una respuesta más conservadora que la dinámica real del activo.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{las_figuras/bitcoin_pso.png}
+    \caption{PSOQRNN: volatilidad predicha vs. realizada --- Bitcoin (BTC-USD).}
+    \label{fig:bitcoin-pso}
+\end{figure}
+
+El PSOQRNN logra, con diferencia, el mejor ajuste visual de los tres modelos: como se aprecia en la Figura~\ref{fig:bitcoin-pso}, la curva de predicción prácticamente se superpone a la volatilidad realizada durante todo el período de prueba, incluyendo los tramos de subida y bajada más abruptos (por ejemplo, el descenso pronunciado hacia $0{,}025$ a mediados de junio y el repunte posterior hacia $0{,}065$ a finales de mes). Esto resulta razonable dada la especificación del modelo: al recibir como entradas directamente la volatilidad realizada del período inmediatamente anterior ($\hat\sigma_{t-1}$) y la innovación del retorno más reciente ($\varepsilon_t$), la red cuenta con la información de más corto plazo posible sobre el estado actual del proceso, lo cual favorece un seguimiento casi punto a punto de la serie.
+
+\begin{table}[H]
+\centering
+\caption{Métricas de error y test de Diebold--Mariano (DM) para Bitcoin (BTC-USD). La reducción de RMSE y el $p$-valor DM se calculan respecto al GARCH como línea base.}
+\label{tab:bitcoin-metrics}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrr}
+\hline
+\textbf{Modelo} & \textbf{MAE} & \textbf{RMSE} & \textbf{Reducción RMSE} & \textbf{DM $p$-valor} \\
+\hline
+GARCH        & $1{,}42\times10^{-2}$ & $2{,}00\times10^{-2}$ & --- & --- \\
+CEEMDAN-LSTM & $5{,}15\times10^{-3}$ & $6{,}21\times10^{-3}$ & $68{,}9\,\%$ & $9{,}26\times10^{-46}$ \\
+PSOQRNN      & $\mathbf{1{,}23\times10^{-3}}$ & $\mathbf{1{,}74\times10^{-3}}$ & $\mathbf{91{,}3\,\%}$ & $1{,}25\times10^{-53}$ \\
+\hline
+\end{tabular}%
+}
+\end{table}
+
+La lectura numérica y la lectura visual coinciden plenamente en Bitcoin: el PSOQRNN es el modelo superior tanto en las métricas de error como en la fidelidad de la trayectoria predicha, con una reducción de RMSE del $91{,}3\,\%$ frente al GARCH, estadísticamente significativa según el test DM ($p \ll 0.001$). El CEEMDAN-LSTM ocupa la posición intermedia, con mejoras también significativas frente a la línea base ($68{,}9\,\%$ de reducción en RMSE) pero claramente inferiores a las del PSOQRNN, en línea con el rezago y la subestimación de picos observados en su gráfico. El GARCH, por su parte, es el único de los tres modelos cuyo error visual (sobreestimación sistemática con picos desproporcionados) se refleja directamente en el peor desempeño numérico. El orden de desempeño resultante es: PSOQRNN $>$ CEEMDAN-LSTM $>$ GARCH, tanto en términos gráficos como estadísticos.
 
 \subsection{Ethereum (ETH-USD)}
 
+El Ethereum comparte con el Bitcoin la condición de criptomoneda con operación continua (2\,773 observaciones de prueba), pero exhibe un perfil de volatilidad todavía más agitado, con episodios de alta variabilidad más abruptos y transiciones de régimen más marcadas: la volatilidad realizada pasa de mínimos cercanos a $0{,}03$ a máximos cercanos a $0{,}095$--$0{,}10$ en cuestión de pocos días, en más de una ocasión durante el período de prueba.
+
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{las_figuras/ethereum.png}
-    \caption{Predicción de la volatilidad del Ethereum (ETH-USD) en el conjunto de prueba.}
-    \label{fig:ethereum}
+    \includegraphics[width=0.8\textwidth]{las_figuras/ethereum_garch.png}
+    \caption{GARCH: volatilidad predicha vs. realizada --- Ethereum (ETH-USD).}
+    \label{fig:ethereum-garch}
 \end{figure}
 
-El Ethereum presenta un perfil de volatilidad similar al Bitcoin pero con episodios de alta variabilidad más abruptos. Como se aprecia en la Figura~\ref{fig:ethereum}, el PSOQRNN mantiene la mejor capacidad de seguimiento de la serie, obteniendo un MAE de $1{,}11 \times 10^{-3}$ y un RMSE de $1{,}68 \times 10^{-3}$ (reducción del 93{,}3\,\% en RMSE respecto al GARCH, $p$-valor DM $= 1{,}02 \times 10^{-78}$). En los picos de mayor amplitud el PSOQRNN tiende a subestimar ligeramente la magnitud, lo cual se refleja en errores puntuales más elevados sin afectar significativamente las métricas globales. El CEEMDAN-LSTM también supera al GARCH con un MAE de $1{,}41 \times 10^{-2}$ y RMSE de $1{,}58 \times 10^{-2}$ (reducción del 37{,}3\,\%, $p$-valor DM $= 2{,}26 \times 10^{-33}$), aunque con menor margen que en Bitcoin. El GARCH presenta la sobreestimación sistemática observada en todos los activos. El orden de desempeño es: PSOQRNN $>$ CEEMDAN-LSTM $>$ GARCH.
+El GARCH exhibe en Ethereum la sobreestimación más extrema de todo el estudio: como muestra la Figura~\ref{fig:ethereum-garch}, la predicción oscila de forma casi continua entre $0{,}05$ y $0{,}15$ --- muy por encima de la volatilidad real, que rara vez supera $0{,}10$ --- y alcanza un pico aislado cercano a $0{,}27$ hacia finales de junio, más de tres veces el valor real observado en ese instante. La amplitud de estas oscilaciones espurias, sistemáticamente mayor que en Bitcoin, sugiere que el ARIMA ajustado a los log-retornos de Ethereum deja residuales de mayor magnitud relativa, que el GARCH traduce directamente en saltos de varianza condicional.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{las_figuras/ethereum_ceemdan.png}
+    \caption{CEEMDAN-LSTM: volatilidad predicha vs. realizada --- Ethereum (ETH-USD).}
+    \label{fig:ethereum-ceemdan}
+\end{figure}
+
+El CEEMDAN-LSTM sigue razonablemente bien la forma de la serie durante la primera mitad del período de prueba, incluyendo el pico inicial cercano a $0{,}10$ (Figura~\ref{fig:ethereum-ceemdan}), pero a partir de mediados de junio su predicción se estanca en un rango notablemente más bajo que la serie real: durante el repunte de finales de junio, mientras la volatilidad real alcanza cerca de $0{,}08$, la predicción del modelo apenas roza $0{,}055$. Este comportamiento --- capturar razonablemente el nivel general pero subestimar de forma creciente los repuntes más recientes --- es coherente con la métrica de reducción de RMSE más baja de todo el estudio para este modelo, y anticipa la brecha de desempeño frente al PSOQRNN que se cuantifica más adelante.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{las_figuras/ethereum_pso.png}
+    \caption{PSOQRNN: volatilidad predicha vs. realizada --- Ethereum (ETH-USD).}
+    \label{fig:ethereum-pso}
+\end{figure}
+
+El PSOQRNN mantiene, también en Ethereum, la mejor capacidad de seguimiento de la serie (Figura~\ref{fig:ethereum-pso}): la curva predicha reproduce fielmente tanto el nivel como la forma de la volatilidad real a lo largo de todo el período, incluyendo los tramos de subida y bajada más pronunciados. La única desviación sistemática visible ocurre en los picos de mayor amplitud, donde el modelo tiende a subestimar ligeramente la magnitud máxima alcanzada; al tratarse de un número reducido de observaciones extremas dentro de una muestra de más de 2\,700 puntos, este efecto se refleja en errores puntuales más elevados sin afectar de forma apreciable las métricas globales.
+
+\begin{table}[H]
+\centering
+\caption{Métricas de error y test de Diebold--Mariano (DM) para Ethereum (ETH-USD). La reducción de RMSE y el $p$-valor DM se calculan respecto al GARCH como línea base.}
+\label{tab:ethereum-metrics}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrr}
+\hline
+\textbf{Modelo} & \textbf{MAE} & \textbf{RMSE} & \textbf{Reducción RMSE} & \textbf{DM $p$-valor} \\
+\hline
+GARCH        & $1{,}84\times10^{-2}$ & $2{,}52\times10^{-2}$ & --- & --- \\
+CEEMDAN-LSTM & $1{,}41\times10^{-2}$ & $1{,}58\times10^{-2}$ & $37{,}3\,\%$ & $2{,}26\times10^{-33}$ \\
+PSOQRNN      & $\mathbf{1{,}11\times10^{-3}}$ & $\mathbf{1{,}68\times10^{-3}}$ & $\mathbf{93{,}3\,\%}$ & $1{,}02\times10^{-78}$ \\
+\hline
+\end{tabular}%
+}
+\end{table}
+
+En Ethereum, al igual que en Bitcoin, la evidencia numérica y la visual apuntan en la misma dirección. El PSOQRNN vuelve a ser el modelo superior, con una reducción de RMSE del $93{,}3\,\%$ frente al GARCH ($p$-valor DM $= 1{,}02 \times 10^{-78}$, el más pequeño de los seis activos, lo que indica la diferencia de precisión predictiva más contundente del estudio). El CEEMDAN-LSTM también supera al GARCH de forma estadísticamente significativa, pero con un margen de mejora ($37{,}3\,\%$) considerablemente menor que en Bitcoin ($68{,}9\,\%$), consistente con la subestimación progresiva observada en su gráfico durante la segunda mitad del período de prueba. El GARCH conserva el peor desempeño, en línea con la sobreestimación sistemática y las oscilaciones espurias documentadas en su figura. El orden de desempeño es: PSOQRNN $>$ CEEMDAN-LSTM $>$ GARCH.
 
 \subsection{Euro/Dólar (EUR/USD)}
 
+El par EUR/USD corresponde al mercado de divisas, caracterizado por una volatilidad intradía generalmente más baja en magnitud (entre $0{,}004$ y $0{,}008$ durante casi todo el período de prueba) y con un patrón marcadamente escalonado: la serie real permanece estable en un nivel durante varios días y luego salta abruptamente a otro nivel, en lugar de variar de forma gradual como en las criptomonedas. Este activo es, junto con el Oro, uno de los dos casos del estudio en los que las métricas de error y la inspección visual de las predicciones no cuentan exactamente la misma historia, por lo que se documentan ambas lecturas de forma explícita.
+
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{las_figuras/eurusd.png}
-    \caption{Predicción de la volatilidad del par de divisas EUR/USD en el conjunto de prueba.}
-    \label{fig:eurusd}
+    \includegraphics[width=0.8\textwidth]{las_figuras/eurusd_garch.png}
+    \caption{GARCH: volatilidad predicha vs. realizada --- EUR/USD.}
+    \label{fig:eurusd-garch}
 \end{figure}
 
-El par EUR/USD corresponde al mercado de divisas, caracterizado por una volatilidad intradía generalmente más baja y con menor persistencia que las criptomonedas. A diferencia del menor margen de mejora relativa observado en ETH-USD (37\,\%), en el par EUR/USD el modelo CEEMDAN-LSTM no logra capturar eficientemente la dinámica de la serie y supera al GARCH en métricas pero no en entender el comportamiento de la serie, ya que termina prediciendo el mismo valor medio para cada punto, aún así obtiene un MAE de $1{,}00 \times 10^{-3}$ y un RMSE de $1{,}15 \times 10^{-3}$ (reducción del 40{,}1\,\% en RMSE, $p$-valor DM $= 6{,}90 \times 10^{-16}$). El PSOQRNN vuelve a ser el modelo superior con MAE de $2{,}12 \times 10^{-4}$ y RMSE de $3{,}27 \times 10^{-4}$ (reducción del 83{,}0\,\%, $p$-valor DM $= 9{,}96 \times 10^{-36}$). El GARCH muestra el peor desempeño en este activo, con dificultades para modelar la baja persistencia de la volatilidad en divisas. El orden de desempeño es: PSOQRNN $>$ GARCH (Por deducción gráfica) $>$ CEEMDAN-LSTM.
+El GARCH muestra en EUR/USD un patrón de predicción muy ruidoso, con picos frecuentes que superan $0{,}010$ e incluso $0{,}020$ frente a una serie real que rara vez excede $0{,}008$ (Figura~\ref{fig:eurusd-garch}). El modelo no logra capturar el patrón escalonado característico de este activo: en lugar de mantenerse estable durante los tramos en que la volatilidad real permanece constante, la predicción fluctúa de forma errática alrededor de ese nivel. Aun así, y a diferencia de lo que ocurre con el CEEMDAN-LSTM en este mismo activo, la predicción del GARCH sí oscila siguiendo, de forma imprecisa, los cambios de nivel de la serie real, lo cual explica por qué, pese a tener el peor desempeño numérico de los tres modelos en EUR/USD, no es el que exhibe el problema más severo desde el punto de vista de la utilidad práctica de la predicción.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{las_figuras/eurusd_ceemdan.png}
+    \caption{CEEMDAN-LSTM: volatilidad predicha vs. realizada --- EUR/USD.}
+    \label{fig:eurusd-ceemdan}
+\end{figure}
+
+La Figura~\ref{fig:eurusd-ceemdan} evidencia el problema más importante de esta sección: la predicción del CEEMDAN-LSTM es, en la práctica, una línea casi plana en torno a $0{,}0063$, prácticamente insensible a los saltos de nivel que domina la dinámica real de la serie (que se mueve entre $0{,}004$ y $0{,}0078$ a lo largo del período, con cambios abruptos de hasta $0{,}003$ en un solo intervalo). El modelo no está describiendo la volatilidad del EUR/USD; está aproximando, con muy poca variación, el valor medio de la volatilidad observada en el conjunto de entrenamiento. Este es exactamente el tipo de comportamiento que las métricas de error, por sí solas, no permiten detectar: si la serie objetivo pasa la mayor parte del tiempo relativamente cerca de su propia media, un modelo que simplemente predice esa media puede obtener errores promedio bajos sin haber aprendido ninguna estructura temporal de la serie.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{las_figuras/eurusd_pso.png}
+    \caption{PSOQRNN: volatilidad predicha vs. realizada --- EUR/USD.}
+    \label{fig:eurusd-pso}
+\end{figure}
+
+El PSOQRNN, en cambio, reproduce con fidelidad el patrón escalonado de la serie (Figura~\ref{fig:eurusd-pso}), incluyendo los saltos de nivel y la caída real hacia $0{,}0042$ observada a mediados de junio. La única excepción notable es un punto aislado en esa misma fecha en el que la predicción se desploma erróneamente hasta cerca de $0{,}0004$, muy por debajo del mínimo real, y otro pico puntual sobreestimado en torno al 12 de junio; en ambos casos se trata de errores acotados a una única observación, sin que afecten el seguimiento general de la serie.
+
+\begin{table}[H]
+\centering
+\caption{Métricas de error y test de Diebold--Mariano (DM) para EUR/USD. La reducción de RMSE y el $p$-valor DM se calculan respecto al GARCH como línea base.}
+\label{tab:eurusd-metrics}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrr}
+\hline
+\textbf{Modelo} & \textbf{MAE} & \textbf{RMSE} & \textbf{Reducción RMSE} & \textbf{DM $p$-valor} \\
+\hline
+GARCH        & $1{,}27\times10^{-3}$ & $1{,}92\times10^{-3}$ & --- & --- \\
+CEEMDAN-LSTM & $1{,}00\times10^{-3}$ & $1{,}15\times10^{-3}$ & $40{,}1\,\%$ & $6{,}90\times10^{-16}$ \\
+PSOQRNN      & $\mathbf{2{,}12\times10^{-4}}$ & $\mathbf{3{,}27\times10^{-4}}$ & $\mathbf{83{,}0\,\%}$ & $9{,}96\times10^{-36}$ \\
+\hline
+\end{tabular}%
+}
+\end{table}
+
+Es importante ser precisos sobre lo que dicen y lo que no dicen las cifras de la Tabla~\ref{tab:eurusd-metrics}. El resultado del test de Diebold--Mariano es correcto y no se pone en duda: el CEEMDAN-LSTM tiene, en efecto, un error cuadrático medio significativamente menor que el GARCH en esta muestra ($p = 6{,}90\times10^{-16}$), con una reducción de RMSE del $40{,}1\,\%$. Lo que la métrica no captura es \emph{cómo} se obtiene esa reducción: en un activo de volatilidad baja y relativamente estable como el EUR/USD, una predicción casi constante igual al nivel medio puede bastar para superar a un GARCH ruidoso y sobrerreactivo en términos de error promedio, sin que ello implique que el modelo haya aprendido a anticipar los cambios de régimen de la serie. Por esta razón, para efectos de la interpretación cualitativa del desempeño --- es decir, qué tan útil sería cada modelo para anticipar un cambio real en la volatilidad del par --- el orden de desempeño en EUR/USD se reporta como PSOQRNN $>$ GARCH (por inspección gráfica) $>$ CEEMDAN-LSTM, sin que esto contradiga ni deje de lado la Tabla~\ref{tab:eurusd-metrics}: ambas lecturas, la cuantitativa y la gráfica, se presentan explícitamente porque responden preguntas distintas y ninguna de las dos sustituye a la otra.
 
 \subsection{Oro (GC=F)}
 
+El oro presenta, de los seis activos analizados, la volatilidad más estable en términos relativos, con episodios de variabilidad moderada (entre $0{,}016$ y $0{,}040$ durante casi todo el período de prueba) y transiciones de nivel más suaves que las observadas en las criptomonedas, aunque no está exento de saltos abruptos puntuales, como la caída súbita registrada a mediados de junio. Al igual que en EUR/USD, el Oro es uno de los dos activos en los que la lectura numérica y la lectura gráfica de los resultados del CEEMDAN-LSTM requieren una explicación conjunta.
+
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{las_figuras/gold.png}
-    \caption{Predicción de la volatilidad del Oro (GC=F) en el conjunto de prueba.}
-    \label{fig:gold}
+    \includegraphics[width=0.8\textwidth]{las_figuras/gold_garch.png}
+    \caption{GARCH: volatilidad predicha vs. realizada --- Oro (GC=F).}
+    \label{fig:gold-garch}
 \end{figure}
 
-El oro presenta una volatilidad relativamente estable con episodios de variabilidad moderada. El modelo CEEMDAN-LSTM cae nuevamente en el problema de predicción del valor medio ya que con los parámetros que tiene no logra entender la dinámica de la serie, aun así en métricas supera al GARCH, obteniendo MAE de $4{,}48 \times 10^{-3}$ y RMSE de $5{,}63 \times 10^{-3}$ (reducción del 53{,}4\,\% en RMSE, $p$-valor DM $= 2{,}10 \times 10^{-12}$), pero su valor de uso es muy bajo. El GARCH sobreestima la variabilidad con MAE de $7{,}59 \times 10^{-3}$ y RMSE de $1{,}21 \times 10^{-2}$. El PSOQRNN obtiene la mejor precisión cuantitativa con MAE de $3{,}69 \times 10^{-4}$ y RMSE de $6{,}89 \times 10^{-4}$, lo que corresponde a una reducción del 94{,}3\,\% en RMSE respecto al GARCH ($p$-valor DM $= 1{,}93 \times 10^{-19}$, $p \ll 0.001$). El orden de desempeño es: PSOQRNN $>$ GARCH (Por deducción gráfica) $>$ CEEMDAN-LSTM.
+El GARCH sobreestima la variabilidad del oro con picos erráticos que alcanzan $0{,}12$--$0{,}16$ (Figura~\ref{fig:gold-garch}), frente a una serie real que se mantiene casi siempre por debajo de $0{,}04$; se observan dos saltos particularmente pronunciados, uno cerca del 14 de junio y otro alrededor del 18 de junio, ninguno de los cuales tiene una contraparte de magnitud comparable en la volatilidad realizada. Como en los demás activos, esto refleja la alta sensibilidad del GARCH a residuales puntuales grandes del modelo de media.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{las_figuras/gold_ceemdan.png}
+    \caption{CEEMDAN-LSTM: volatilidad predicha vs. realizada --- Oro (GC=F).}
+    \label{fig:gold-ceemdan}
+\end{figure}
+
+El CEEMDAN-LSTM reproduce en el oro el mismo problema documentado para EUR/USD, de forma incluso más marcada: la Figura~\ref{fig:gold-ceemdan} muestra una predicción prácticamente constante en torno a $0{,}0265$, indiferente a que la volatilidad real oscile entre $0{,}016$ (tras la caída súbita de mediados de junio) y $0{,}040$ (en el pico observado alrededor del 14 de junio). La red no está anticipando los movimientos del oro; está devolviendo, con mínima variación, un valor cercano al promedio de la volatilidad de entrenamiento, independientemente de la información contenida en las IMFs de cada instante.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{las_figuras/gold_pso.png}
+    \caption{PSOQRNN: volatilidad predicha vs. realizada --- Oro (GC=F).}
+    \label{fig:gold-pso}
+\end{figure}
+
+El PSOQRNN, en contraste, sigue de cerca la trayectoria real del oro (Figura~\ref{fig:gold-pso}), incluyendo la caída abrupta de mediados de junio, en la que la volatilidad real desciende de forma casi vertical desde cerca de $0{,}024$ hasta aproximadamente $0{,}016$ en un solo intervalo; el modelo reproduce esta caída con un desfase mínimo de un período, la única discrepancia visible de todo el gráfico.
+
+\begin{table}[H]
+\centering
+\caption{Métricas de error y test de Diebold--Mariano (DM) para Oro (GC=F). La reducción de RMSE y el $p$-valor DM se calculan respecto al GARCH como línea base.}
+\label{tab:gold-metrics}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrr}
+\hline
+\textbf{Modelo} & \textbf{MAE} & \textbf{RMSE} & \textbf{Reducción RMSE} & \textbf{DM $p$-valor} \\
+\hline
+GARCH        & $7{,}59\times10^{-3}$ & $1{,}21\times10^{-2}$ & --- & --- \\
+CEEMDAN-LSTM & $4{,}48\times10^{-3}$ & $5{,}63\times10^{-3}$ & $53{,}4\,\%$ & $2{,}10\times10^{-12}$ \\
+PSOQRNN      & $\mathbf{3{,}69\times10^{-4}}$ & $\mathbf{6{,}89\times10^{-4}}$ & $\mathbf{94{,}3\,\%}$ & $1{,}93\times10^{-19}$ \\
+\hline
+\end{tabular}%
+}
+\end{table}
+
+Como en EUR/USD, la Tabla~\ref{tab:gold-metrics} es numéricamente correcta y no se cuestiona: el CEEMDAN-LSTM reduce el RMSE del GARCH en un $53{,}4\,\%$, con significancia estadística confirmada por el test DM ($p = 2{,}10\times10^{-12}$). Pero, igual que antes, esa reducción se explica en buena medida porque la volatilidad del oro pasa la mayor parte del tiempo relativamente cerca de su nivel medio, de modo que una predicción casi plana --- que no responde a la información de cada instante --- ya obtiene un error promedio menor que el de un GARCH ruidoso, sin que ello implique capacidad predictiva real sobre los cambios de la serie. Por esta razón, y sin que se contradiga en ningún momento el resultado de la Tabla~\ref{tab:gold-metrics}, el orden de desempeño en el oro se reporta en su dimensión gráfica como PSOQRNN $>$ GARCH (por inspección gráfica) $>$ CEEMDAN-LSTM: el GARCH, pese a tener el peor error numérico, al menos reacciona --- aunque de forma excesiva y ruidosa --- a los cambios de la serie, mientras que el CEEMDAN-LSTM prácticamente no reacciona en absoluto.
 
 \subsection{S\&P\,500 (\^{}GSPC)}
 
+El S\&P\,500 opera exclusivamente en días hábiles y en horario de mercado, lo que reduce su conjunto de prueba a $n = 471$ observaciones, sensiblemente menos que las criptomonedas o las divisas. Su volatilidad realizada muestra una tendencia de fondo relativamente ordenada --- un ascenso gradual desde cerca de $0{,}019$ hasta niveles cercanos a $0{,}037$ durante la primera mitad del período, seguido de fluctuaciones moderadas alrededor de ese nivel ---, con menos racimos extremos que las criptomonedas pero con quiebres de tendencia puntuales bien definidos.
+
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{las_figuras/sp500.png}
-    \caption{Predicción de la volatilidad del índice S\&P\,500 en el conjunto de prueba.}
-    \label{fig:sp500}
+    \includegraphics[width=0.8\textwidth]{las_figuras/sp500_garch.png}
+    \caption{GARCH: volatilidad predicha vs. realizada --- S\&P\,500.}
+    \label{fig:sp500-garch}
 \end{figure}
 
-El S\&P\,500 opera exclusivamente en días hábiles y en horario de mercado, lo que reduce su conjunto de prueba a $n = 471$ observaciones. A pesar de esta restricción, tanto el PSOQRNN como el CEEMDAN-LSTM superan ampliamente al GARCH. El CEEMDAN-LSTM obtiene MAE de $1{,}65 \times 10^{-3}$ y RMSE de $1{,}74 \times 10^{-3}$ (reducción del 91{,}0\,\% en RMSE, $p$-valor DM $= 2{,}43 \times 10^{-10}$). El PSOQRNN es el mejor modelo con MAE de $6{,}12 \times 10^{-4}$ y RMSE de $9{,}82 \times 10^{-4}$ (reducción del 94{,}9\,\%, $p$-valor DM $= 1{,}51 \times 10^{-11}$), aunque visualmente se observa que los picos de mayor amplitud no son reproducidos con la proporción exacta. El orden de desempeño es: PSOQRNN $>$ CEEMDAN-LSTM $>$ GARCH.
+El GARCH vuelve a mostrar el patrón de sobreestimación errática ya observado en los demás activos, acentuado por el tamaño reducido de la muestra de prueba: la Figura~\ref{fig:sp500-garch} muestra picos aislados que alcanzan $0{,}09$, $0{,}12$ e incluso $0{,}16$ --- este último cerca de finales de junio ---, frente a una serie real que se mantiene consistentemente entre $0{,}02$ y $0{,}04$ durante todo el período. La escasa correspondencia entre la forma de la predicción y la de la serie real es, de los seis activos, una de las más marcadas.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{las_figuras/sp500_ceemdan.png}
+    \caption{CEEMDAN-LSTM: volatilidad predicha vs. realizada --- S\&P\,500.}
+    \label{fig:sp500-ceemdan}
+\end{figure}
+
+A diferencia de lo observado en EUR/USD y en el Oro, en el S\&P\,500 el CEEMDAN-LSTM sí responde a la dinámica de la serie: la Figura~\ref{fig:sp500-ceemdan} muestra que la predicción sigue de cerca la tendencia ascendente de la primera quincena y las fluctuaciones posteriores, con un desfase leve y una tendencia a suavizar los quiebres más abruptos (por ejemplo, el descenso hacia $0{,}033$ a finales de junio se anticipa parcialmente antes de que ocurra en la serie real). No se observa aquí el aplanamiento hacia el valor medio identificado en los otros dos activos: el modelo efectivamente está utilizando la información de entrada para ajustar su predicción período a período.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{las_figuras/sp500_pso.png}
+    \caption{PSOQRNN: volatilidad predicha vs. realizada --- S\&P\,500.}
+    \label{fig:sp500-pso}
+\end{figure}
+
+El PSOQRNN reproduce con alta fidelidad la trayectoria completa del índice (Figura~\ref{fig:sp500-pso}), incluyendo la tendencia ascendente inicial y los quiebres posteriores, con la excepción de un valor inicial anómalo al comienzo mismo del conjunto de prueba (una subestimación puntual aislada) y de los picos de mayor amplitud, cuya proporción exacta no siempre se reproduce, aunque sí se anticipa correctamente su dirección.
+
+\begin{table}[H]
+\centering
+\caption{Métricas de error y test de Diebold--Mariano (DM) para S\&P\,500. La reducción de RMSE y el $p$-valor DM se calculan respecto al GARCH como línea base.}
+\label{tab:sp500-metrics}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrr}
+\hline
+\textbf{Modelo} & \textbf{MAE} & \textbf{RMSE} & \textbf{Reducción RMSE} & \textbf{DM $p$-valor} \\
+\hline
+GARCH        & $1{,}36\times10^{-2}$ & $1{,}93\times10^{-2}$ & --- & --- \\
+CEEMDAN-LSTM & $1{,}65\times10^{-3}$ & $1{,}74\times10^{-3}$ & $91{,}0\,\%$ & $2{,}43\times10^{-10}$ \\
+PSOQRNN      & $\mathbf{6{,}12\times10^{-4}}$ & $\mathbf{9{,}82\times10^{-4}}$ & $\mathbf{94{,}9\,\%}$ & $1{,}51\times10^{-11}$ \\
+\hline
+\end{tabular}%
+}
+\end{table}
+
+En el S\&P\,500, a diferencia de EUR/USD y el Oro, la lectura numérica y la lectura gráfica del CEEMDAN-LSTM son consistentes entre sí: su reducción de RMSE del $91{,}0\,\%$ frente al GARCH refleja un seguimiento genuino de la dinámica de la serie, no un simple aplanamiento hacia la media. El PSOQRNN conserva el mejor desempeño global, con una reducción de RMSE del $94{,}9\,\%$ y el ajuste visual más preciso de los tres modelos, aunque con menor holgura relativa sobre el CEEMDAN-LSTM que la observada en las criptomonedas. El orden de desempeño es: PSOQRNN $>$ CEEMDAN-LSTM $>$ GARCH.
 
 \subsection{NASDAQ (\^{}IXIC)}
 
+El NASDAQ comparte con el S\&P\,500 las mismas restricciones de operación como índice bursátil ($n = 476$ observaciones en el conjunto de prueba), y un perfil de volatilidad realizada similar: una fase de ascenso relativamente ordenado desde cerca de $0{,}030$ hasta niveles cercanos a $0{,}050$--$0{,}052$ durante la primera quincena, seguida de fluctuaciones moderadas alrededor de ese rango durante el resto del período de prueba.
+
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{las_figuras/nasdaq.png}
-    \caption{Predicción de la volatilidad del índice NASDAQ en el conjunto de prueba.}
-    \label{fig:nasdaq}
+    \includegraphics[width=0.8\textwidth]{las_figuras/nasqad_garch.png}
+    \caption{GARCH: volatilidad predicha vs. realizada --- NASDAQ (\^{}IXIC).}
+    \label{fig:nasdaq-garch}
 \end{figure}
 
-El NASDAQ comparte con el S\&P\,500 las mismas restricciones de operación como índice bursátil ($n = 476$ observaciones en el conjunto de prueba). El CEEMDAN-LSTM obtiene MAE de $1{,}00 \times 10^{-3}$ y RMSE de $1{,}23 \times 10^{-3}$ (reducción del 95{,}3\,\% en RMSE respecto al GARCH, $p$-valor DM $= 3{,}15 \times 10^{-9}$), logrando su segunda mejor reducción relativa en todo el estudio. El PSOQRNN mantiene el primer lugar con MAE de $6{,}99 \times 10^{-4}$ y RMSE de $9{,}95 \times 10^{-4}$ (reducción del 96{,}2\,\%, $p$-valor DM $= 1{,}09 \times 10^{-9}$). El GARCH, con RMSE de $2{,}59 \times 10^{-2}$, muestra una sobreestimación especialmente pronunciada en este activo. Tanto para este indice como el anterios, la mejora que se ve en el PSOQRNN no es tan amplia con respecto al modelo CEEMDAN-LSTM. El orden de desempeño es: PSOQRNN $>$ CEEMDAN-LSTM $>$ GARCH.
+El GARCH muestra en el NASDAQ la sobreestimación más pronunciada de los dos índices bursátiles: la Figura~\ref{fig:nasdaq-garch} exhibe un pico aislado que supera $0{,}23$ hacia finales de junio --- casi cinco veces el nivel real observado ese día, cercano a $0{,}05$ --- además de numerosos picos secundarios entre $0{,}08$ y $0{,}15$ sin contraparte en la serie real, la cual se mantiene, en contraste, notablemente estable durante todo el período.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{las_figuras/nasqad_ceemdan.png}
+    \caption{CEEMDAN-LSTM: volatilidad predicha vs. realizada --- NASDAQ (\^{}IXIC).}
+    \label{fig:nasdaq-ceemdan}
+\end{figure}
+
+El CEEMDAN-LSTM sigue razonablemente bien la tendencia ascendente inicial y los tramos posteriores de la serie (Figura~\ref{fig:nasdaq-ceemdan}), con un patrón de pequeños rezagos y sobrecorrecciones en los quiebres de tendencia --- por ejemplo, alrededor del 21 de junio la predicción sobrepasa transitoriamente a la serie real antes de converger de nuevo hacia ella ---, pero sin el aplanamiento hacia un valor constante observado en EUR/USD y en el Oro: el modelo continúa respondiendo a los cambios de la serie a lo largo de todo el período.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{las_figuras/nasqad_pso.png}
+    \caption{PSOQRNN: volatilidad predicha vs. realizada --- NASDAQ (\^{}IXIC).}
+    \label{fig:nasdaq-pso}
+\end{figure}
+
+El PSOQRNN reproduce fielmente la trayectoria completa del índice (Figura~\ref{fig:nasdaq-pso}), incluyendo la fase de ascenso y las fluctuaciones posteriores, con desviaciones menores concentradas en los quiebres de tendencia más marcados (en torno al 21 y al 28 de junio), donde la predicción se adelanta o se retrasa levemente respecto al cambio real, sin llegar a perder el nivel general de la serie.
+
+\begin{table}[H]
+\centering
+\caption{Métricas de error y test de Diebold--Mariano (DM) para NASDAQ (\^{}IXIC). La reducción de RMSE y el $p$-valor DM se calculan respecto al GARCH como línea base.}
+\label{tab:nasdaq-metrics}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrr}
+\hline
+\textbf{Modelo} & \textbf{MAE} & \textbf{RMSE} & \textbf{Reducción RMSE} & \textbf{DM $p$-valor} \\
+\hline
+GARCH        & $1{,}77\times10^{-2}$ & $2{,}59\times10^{-2}$ & --- & --- \\
+CEEMDAN-LSTM & $1{,}00\times10^{-3}$ & $1{,}23\times10^{-3}$ & $95{,}3\,\%$ & $3{,}15\times10^{-9}$ \\
+PSOQRNN      & $\mathbf{6{,}99\times10^{-4}}$ & $\mathbf{9{,}95\times10^{-4}}$ & $\mathbf{96{,}2\,\%}$ & $1{,}09\times10^{-9}$ \\
+\hline
+\end{tabular}%
+}
+\end{table}
+
+El NASDAQ es, junto con el S\&P\,500, uno de los activos donde el CEEMDAN-LSTM cierra la mayor parte de la brecha frente al PSOQRNN: su reducción de RMSE del $95{,}3\,\%$ frente al GARCH es la segunda mejor de todo el estudio, y --- a diferencia de EUR/USD y el Oro --- corresponde a un seguimiento visualmente genuino de la serie, no a una predicción plana. El PSOQRNN mantiene el primer lugar con una reducción de RMSE del $96{,}2\,\%$, pero la distancia relativa entre ambos modelos de redes neuronales es, en este activo, la más estrecha del estudio. El GARCH conserva el peor desempeño, en línea con la sobreestimación extrema documentada en su gráfico. El orden de desempeño es: PSOQRNN $>$ CEEMDAN-LSTM $>$ GARCH.
 
 \subsection{Resumen comparativo}
 
@@ -325,6 +981,7 @@ GC=F     & Mat. prima & $7.59\times10^{-3}$ & $1.21\times10^{-2}$ & $4.48\times1
 \end{tabular}%
 }
 \end{table}
+
 
 \section{Conclusiones y recomendaciones}
 
