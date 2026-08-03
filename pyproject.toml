@@ -50,3 +50,16 @@ dev = [
     "pytest-cov (>=7.1.0,<8.0.0)",
     "ipykernel (>=7.3.0,<8.0.0)"
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "stale_api: test apunta a una API pública anterior que ya no coincide con el código actual (deuda técnica documentada, no eliminar)",
+]
+addopts = "--cov=finance_modeling --cov-report=term-missing"
+
+[tool.coverage.run]
+source = ["src/finance_modeling"]
+
+[tool.coverage.report]
+show_missing = true

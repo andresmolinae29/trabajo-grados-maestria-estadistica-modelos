@@ -7,18 +7,10 @@ import pandas as pd
 import pytest
 
 from finance_modeling.data import DataPreprocessor, RawDataLoader
-from finance_modeling.schemas.data import AssetMetadata, AssetType, TimeSeriesInput
+from finance_modeling.schemas.data import TimeSeriesInput
 from finance_modeling.utils import DataLoaderException
 
-
-def make_asset_metadata() -> AssetMetadata:
-    return AssetMetadata(
-        symbol="BTC-USD",
-        asset_type=AssetType.CRYPTO,
-        description="Bitcoin",
-        data_folder="bitcoin",
-        column_to_use="close",
-    )
+from tests.factories import make_asset_metadata
 
 
 def make_time_series_input(series: pd.Series) -> TimeSeriesInput:
