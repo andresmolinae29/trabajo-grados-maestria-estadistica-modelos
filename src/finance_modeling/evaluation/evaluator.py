@@ -29,12 +29,7 @@ class Evaluator:
 
         y_pred_series = convert_list_to_series(
             [row.timestamp for row in y_pred.rows],
-            [
-                row.predicted_volatility
-                if row.predicted_volatility is not None
-                else row.predicted_value
-                for row in y_pred.rows
-            ],
+            [row.predicted_value for row in y_pred.rows],
         )
 
         return cls().evaluate(

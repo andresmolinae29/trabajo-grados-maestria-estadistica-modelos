@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import os
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -8,6 +11,8 @@ from finance_modeling.experiments import runner
 from finance_modeling.schemas import ComparisonResult, EvaluationResult, ExperimentConfig, ListOfAssets, ModelConfig, PredictionResult, PredictionRow, TimeSeriesInput
 from finance_modeling.schemas.data import AssetMetadata, AssetType
 from finance_modeling.utils import DataLoaderException
+
+from tests.models.test_garch import make_prices
 
 
 def make_asset(active: bool = True) -> AssetMetadata:
@@ -133,6 +138,112 @@ class FakeModel:
         self.call_log.append(f"save_hparams:{self.name}:{experiment_path}")
 
 
+class FakeVolatilityModel:
+    """Doble de BaseVolatilityModel para la API actual: fit()/predict() sin argumentos."""
+
+    def __init__(self, name: str, predictions: np.ndarray, y_test: np.ndarray, call_log: list[str]):
+        self.name = name
+        self._predictions = predictions
+        self.y_test = y_test
+        self.call_log = call_log
+        self.is_fitted = False
+
+    def fit(self) -> "FakeVolatilityModel":
+        self.is_fitted = True
+        self.call_log.append(f"fit:{self.name}")
+        return self
+
+    def predict(self) -> np.ndarray:
+        self.call_log.append(f"predict:{self.name}")
+        return self._predictions
+
+
+def test_runner_main_orchestrates_models_evaluation_and_comparison(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    asset = make_asset()
+    experiment_path = str(tmp_path / "exp")
+    os.makedirs(experiment_path, exist_ok=True)
+
+    raw_data = TimeSeriesInput(metadata=asset, series=make_prices())
+    experiment_config = ExperimentConfig(
+        experiment_name="exp",
+        output_dir=str(tmp_path),
+        models=[
+            ModelConfig(name="GARCH", hyperparameters_list=[{}]),
+            ModelConfig(name="PSOQRNN", hyperparameters_list=[{}]),
+        ],
+    )
+    data_config = ListOfAssets(assets=[asset])
+    call_log: list[str] = []
+    saved_comparisons: list[tuple[str, str]] = []
+
+    y_test_common = np.array([0.10, 0.11, 0.12, 0.13, 0.14])
+    fake_models = {
+        "GARCH": FakeVolatilityModel("GARCH", np.array([0.11, 0.12, 0.13, 0.14, 0.15]), y_test_common, call_log),
+        "PSOQRNN": FakeVolatilityModel("PSOQRNN", np.array([0.09, 0.10, 0.11, 0.12, 0.13]), y_test_common, call_log),
+    }
+
+    monkeypatch.setattr(runner, "ConfigLoader", lambda: FakeConfigLoader(experiment_config, data_config))
+    monkeypatch.setattr(runner, "create_experiment_directory", lambda output_dir, experiment_name: experiment_path)
+    monkeypatch.setattr(runner, "RawDataLoader", lambda asset: FakeRawDataLoader(asset, raw_data))
+    monkeypatch.setattr(
+        runner.ModelFactory,
+        "create_model",
+        lambda model_name, model_config, symbol, **kwargs: fake_models[model_name],
+    )
+    monkeypatch.setattr(
+        runner.ModelComparator,
+        "compare",
+        lambda self, baseline, challenger, y_pred_baseline, y_pred_challenger, y_true: ComparisonResult(
+            baseline_model=baseline.model_name,
+            challenger_model=challenger.model_name,
+            asset=baseline.asset,
+            dm_statistic=1.0,
+            dm_p_value=0.05,
+        ),
+    )
+    monkeypatch.setattr(
+        runner.ModelComparator,
+        "save_comparison_results",
+        lambda experiment_path, comparison_result: saved_comparisons.append(
+            (comparison_result.baseline_model, comparison_result.challenger_model)
+        ),
+    )
+
+    runner.main()
+
+    assert call_log == ["fit:GARCH", "predict:GARCH", "fit:PSOQRNN", "predict:PSOQRNN"]
+    assert saved_comparisons == [("GARCH", "PSOQRNN")]
+    assert (Path(experiment_path) / "GARCH_BTC-USD_predictions.csv").exists()
+    assert (Path(experiment_path) / "PSOQRNN_BTC-USD_predictions.csv").exists()
+    assert (Path(experiment_path) / "GARCH_BTC-USD_evaluation.json").exists()
+    assert (Path(experiment_path) / "PSOQRNN_BTC-USD_evaluation.json").exists()
+    assert (Path(experiment_path) / "GARCH_BTC-USD_forecast.png").exists()
+
+
+def test_runner_main_skips_inactive_assets(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    inactive_asset = make_asset(active=False)
+    experiment_config = ExperimentConfig(
+        experiment_name="exp",
+        output_dir=str(tmp_path),
+        models=[ModelConfig(name="GARCH", hyperparameters_list=[{}])],
+    )
+    data_config = ListOfAssets(assets=[inactive_asset])
+    create_model_calls: list[str] = []
+
+    monkeypatch.setattr(runner, "ConfigLoader", lambda: FakeConfigLoader(experiment_config, data_config))
+    monkeypatch.setattr(runner, "create_experiment_directory", lambda output_dir, experiment_name: str(tmp_path / "exp"))
+    monkeypatch.setattr(
+        runner.ModelFactory,
+        "create_model",
+        lambda model_name, model_config, symbol, **kwargs: create_model_calls.append(model_name),
+    )
+
+    runner.main()
+
+    assert create_model_calls == []
+
+
+@pytest.mark.stale_api
 @pytest.mark.skip(reason="API obsoleta: enrich_prediction_result y TimeSeriesInput con campos diferentes a la implementación actual")
 def test_enrich_prediction_result_adds_volatility_and_actual_values() -> None:
     asset = make_asset()
@@ -163,6 +274,7 @@ def test_enrich_prediction_result_adds_volatility_and_actual_values() -> None:
     assert enriched.rows[0].predicted_price is None
 
 
+@pytest.mark.stale_api
 @pytest.mark.skip(reason="API obsoleta: enrich_prediction_result y TimeSeriesInput con campos diferentes a la implementación actual")
 def test_enrich_prediction_result_clamps_predictions_to_non_negative_volatility() -> None:
     asset = make_asset()
@@ -188,6 +300,7 @@ def test_enrich_prediction_result_clamps_predictions_to_non_negative_volatility(
     assert enriched.rows[0].upper_ci == pytest.approx(0.0)
 
 
+@pytest.mark.stale_api
 @pytest.mark.skip(reason="API obsoleta: FakePreprocessor y runner.main() usan interfaz distinta a la implementación actual")
 def test_runner_main_orchestrates_models_and_comparison(monkeypatch, tmp_path) -> None:
     asset = make_asset()

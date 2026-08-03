@@ -8,16 +8,8 @@ import pytest
 
 from finance_modeling.evaluation import Evaluator, Metrics
 from finance_modeling.schemas import EvaluationResult, PredictionResult, PredictionRow, TimeSeriesInput
-from finance_modeling.schemas.data import AssetMetadata, AssetType
 
-
-def make_asset_metadata() -> AssetMetadata:
-    return AssetMetadata(
-        symbol="BTC-USD",
-        asset_type=AssetType.CRYPTO,
-        description="Bitcoin",
-        data_folder="bitcoin",
-    )
+from tests.factories import make_asset_metadata
 
 
 def make_time_series_input(test_values: list[float]) -> TimeSeriesInput:
