@@ -219,3 +219,5 @@ src/finance_modeling/logs/*
 
 test*.ipynb
 .github/agents/thesis-writer.agent.md
+
+FORMATO*
