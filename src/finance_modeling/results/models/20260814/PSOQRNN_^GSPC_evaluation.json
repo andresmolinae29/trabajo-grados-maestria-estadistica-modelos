@@ -1,0 +1,7 @@
+{
+    "model_name": "PSOQRNN",
+    "asset": "^GSPC",
+    "rmse": 5.6435339172933504e-05,
+    "mae": 3.970619127937373e-05,
+    "versus_baseline": true
+}

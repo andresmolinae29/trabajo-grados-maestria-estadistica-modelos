@@ -1,0 +1,7 @@
+{
+    "model_name": "PSOQRNN",
+    "asset": "^IXIC",
+    "rmse": 6.544511283979258e-05,
+    "mae": 4.6173473790741896e-05,
+    "versus_baseline": true
+}
