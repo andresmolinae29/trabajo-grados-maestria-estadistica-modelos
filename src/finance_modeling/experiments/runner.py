@@ -58,7 +58,7 @@ def main():
                 )
                 model.fit()
 
-                # model.save_model(experiment_path)
+                model.save_model(experiment_path)
 
                 predictions = model.predict()
 

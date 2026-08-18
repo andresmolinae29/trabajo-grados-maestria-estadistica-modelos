@@ -157,6 +157,9 @@ class FakeVolatilityModel:
         self.call_log.append(f"predict:{self.name}")
         return self._predictions
 
+    def save_model(self, experiment_path: str) -> None:
+        self.call_log.append(f"save_model:{self.name}")
+
 
 def test_runner_main_orchestrates_models_evaluation_and_comparison(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     asset = make_asset()
@@ -211,7 +214,10 @@ def test_runner_main_orchestrates_models_evaluation_and_comparison(monkeypatch: 
 
     runner.main()
 
-    assert call_log == ["fit:GARCH", "predict:GARCH", "fit:PSOQRNN", "predict:PSOQRNN"]
+    assert call_log == [
+        "fit:GARCH", "save_model:GARCH", "predict:GARCH",
+        "fit:PSOQRNN", "save_model:PSOQRNN", "predict:PSOQRNN",
+    ]
     assert saved_comparisons == [("GARCH", "PSOQRNN")]
     assert (Path(experiment_path) / "GARCH_BTC-USD_predictions.csv").exists()
     assert (Path(experiment_path) / "PSOQRNN_BTC-USD_predictions.csv").exists()

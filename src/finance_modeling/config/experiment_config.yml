@@ -27,6 +27,6 @@
       power: 2.0
       dist: skewt
 
-# - name: "CEEMDAN_LSTM"
+- name: "CEEMDAN_LSTM"
 
-# - name: "PSOQRNN"
+- name: "PSOQRNN"
