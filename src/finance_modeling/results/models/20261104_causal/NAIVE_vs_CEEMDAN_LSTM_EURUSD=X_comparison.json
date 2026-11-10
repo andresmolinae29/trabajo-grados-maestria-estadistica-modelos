@@ -1,0 +1,13 @@
+{
+    "baseline_model": "NAIVE",
+    "challenger_model": "CEEMDAN_LSTM",
+    "asset": "EURUSD=X",
+    "rmse_baseline": 8.390796891403705e-05,
+    "rmse_challenger": 0.00013616091336875834,
+    "rmse_diff": 5.2252944454721285e-05,
+    "mae_baseline": 2.006898667092256e-05,
+    "mae_challenger": 0.00011122799243104519,
+    "mae_diff": 9.115900576012263e-05,
+    "dm_statistic": -28.678733590991595,
+    "dm_p_value": 2.3826665500367695e-151
+}

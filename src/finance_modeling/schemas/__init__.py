@@ -1,5 +1,6 @@
 from .config import (
     ExperimentConfig,
+    GarchSelection,
     ModelConfig,
 )
 from .data import (
@@ -23,6 +24,7 @@ __all__ = [
     "ComparisonResult",
     "EvaluationResult",
     "ExperimentConfig",
+    "GarchSelection",
     "ModelConfig",
     "PredictionResult",
     "PredictionRow",

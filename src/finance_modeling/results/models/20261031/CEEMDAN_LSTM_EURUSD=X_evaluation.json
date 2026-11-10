@@ -1,0 +1,7 @@
+{
+    "model_name": "CEEMDAN_LSTM",
+    "asset": "EURUSD=X",
+    "rmse": 0.000811917452233567,
+    "mae": 0.0007508250901017081,
+    "versus_baseline": true
+}

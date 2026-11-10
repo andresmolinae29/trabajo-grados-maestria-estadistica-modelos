@@ -1,0 +1,102 @@
+# Variante causal con búsqueda amplia: PSOQRNN con ε_{t-1} y r̄ de entrenamiento, CEEMDAN-LSTM con
+# descomposición en ventana móvil. La grilla de la tesis se conserva y la búsqueda aleatoria agrega n_trials
+# configuraciones. Con train_context, el LSTM pronostica desde la primera barra de prueba usando como contexto
+# las últimas filas de entrenamiento, así todos los modelos se evalúan en las mismas fechas.
+# Se ejecuta con: python -m finance_modeling.experiments.runner --config experiment_config_causal.yml
+- experiment_name: "20261104_causal"
+- name: "GARCH"
+  hyperparameters_list:
+    - p: 1
+      q: 1
+      dist: normal
+    - p: 1
+      q: 1
+      dist: t
+    - p: 1
+      q: 2
+      dist: t
+    - p: 2
+      q: 1
+      dist: t
+    - p: 2
+      q: 2
+      dist: t
+    - p: 1
+      o: 1
+      q: 1
+      power: 2.0
+      dist: t
+    - p: 1
+      o: 1
+      q: 1
+      power: 2.0
+      dist: skewt
+    - vol: FIGARCH
+      p: 1
+      q: 1
+      dist: normal
+    - vol: FIGARCH
+      p: 0
+      q: 0
+      dist: t
+    - vol: FIGARCH
+      p: 1
+      q: 0
+      dist: t
+    - vol: FIGARCH
+      p: 0
+      q: 1
+      dist: t
+    - vol: FIGARCH
+      p: 1
+      q: 1
+      dist: t
+    - vol: FIGARCH
+      p: 1
+      q: 1
+      dist: skewt
+
+- name: "CEEMDAN_LSTM"
+  seeds: [42, 43, 44]
+  causal: true
+  train_context: true
+  hyperparameters_list:
+    - {window_size: 5, epochs: 80}
+    - {window_size: 5, epochs: 160}
+    - {window_size: 10, epochs: 80}
+    - {window_size: 10, epochs: 160}
+    - {window_size: 20, epochs: 80}
+    - {window_size: 20, epochs: 160}
+  n_trials: 30
+  search_space:
+    window_size: [5, 10, 20, 40, 60]
+    epochs: [40, 80, 120, 160]
+    hidden: [16, 32, 64, 128, 256]
+    layers: [1, 2, 3]
+    dropout: [0.0, 0.1, 0.2, 0.3]
+    dense: [16, 32, 64]
+    lr: [0.0001, 0.0003, 0.001, 0.003]
+    batch_size: [16, 32, 64, 128]
+    weight_decay: [0.0, 0.00001, 0.0001]
+    shuffle: [false, true]
+
+- name: "PSOQRNN"
+  seeds: [42, 43, 44]
+  causal: true
+  hyperparameters_list:
+    - {n_hidden: 2}
+    - {n_hidden: 3}
+    - {n_hidden: 4}
+    - {n_hidden: 5}
+  n_trials: 60
+  search_space:
+    n_hidden: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    n_particles: [20, 40, 60, 100, 150]
+    max_iter: [1000, 2500, 5000, 10000]
+    inertia: [0.4, 0.5, 0.6, 0.729, 0.8, 0.9]
+    c1: [0.5, 1.0, 1.49445, 2.0, 2.5]
+    c2: [0.5, 1.0, 1.49445, 2.0, 2.5]
+    v_max: [0.05, 0.1, 0.5, 1.0, 5.0]
+    init: ["unit", "symmetric"]
+
+- name: "NAIVE"

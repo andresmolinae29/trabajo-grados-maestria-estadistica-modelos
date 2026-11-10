@@ -55,9 +55,6 @@ dev = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-markers = [
-    "stale_api: test apunta a una API pública anterior que ya no coincide con el código actual (deuda técnica documentada, no eliminar)",
-]
 addopts = "--cov=finance_modeling --cov-report=term-missing"
 
 [tool.coverage.run]

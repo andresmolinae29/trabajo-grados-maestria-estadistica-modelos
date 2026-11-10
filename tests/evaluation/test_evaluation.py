@@ -7,34 +7,7 @@ import pandas as pd
 import pytest
 
 from finance_modeling.evaluation import Evaluator, Metrics
-from finance_modeling.schemas import EvaluationResult, PredictionResult, PredictionRow, TimeSeriesInput
-
-from tests.factories import make_asset_metadata
-
-
-def make_time_series_input(test_values: list[float]) -> TimeSeriesInput:
-    index = pd.date_range("2026-01-01", periods=len(test_values), freq="15min")
-    return TimeSeriesInput(
-        metadata=make_asset_metadata(),
-        series=pd.Series(dtype=float),
-        log_returns=pd.Series(dtype=float),
-        test_volatility_raw=pd.Series(test_values, index=index, dtype=float),
-        test_volatility=pd.Series(test_values, index=index, dtype=float),
-    )
-
-
-def make_prediction_result(values: list[float]) -> PredictionResult:
-    index = pd.date_range("2026-01-01", periods=len(values), freq="15min")
-    rows = [
-        PredictionRow(timestamp=timestamp, predicted_value=value, predicted_volatility=value, real_value=None)
-        for timestamp, value in zip(index, values)
-    ]
-    return PredictionResult(
-        model_name="PSO-QRNN",
-        asset="BTC-USD",
-        horizon=len(values),
-        rows=rows,
-    )
+from finance_modeling.schemas import EvaluationResult
 
 
 def test_mean_absolute_error_returns_expected_value() -> None:
@@ -87,18 +60,6 @@ def test_evaluate_returns_evaluation_result() -> None:
     assert evaluation.asset == "BTC-USD"
     assert evaluation.mae == pytest.approx(0.5)
     assert evaluation.rmse == pytest.approx(0.5)
-
-
-def test_from_timeinput_and_prediction_result_uses_prediction_rows() -> None:
-    time_input = make_time_series_input([1.0, 2.0, 3.0])
-    prediction_result = make_prediction_result([1.0, 1.5, 3.5])
-
-    evaluation = Evaluator.from_timeinput_and_prediction_result(time_input, prediction_result)
-
-    assert evaluation.model_name == "PSO-QRNN"
-    assert evaluation.asset == "BTC-USD"
-    assert evaluation.mae == pytest.approx((0.0 + 0.5 + 0.5) / 3)
-    assert evaluation.rmse == pytest.approx(((0.0**2 + 0.5**2 + 0.5**2) / 3) ** 0.5)
 
 
 def test_save_evaluation_results_writes_json_file(tmp_path: Path) -> None:

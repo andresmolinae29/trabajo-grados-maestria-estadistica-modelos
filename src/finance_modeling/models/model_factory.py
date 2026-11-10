@@ -2,6 +2,7 @@ from .base import BaseVolatilityModel
 from .garch import GARCHModel
 from .psoqrnn import PSOQRNNModel
 from .ceemdan_lstm import CEEMDANLSTMModel
+from .naive import NaiveModel
 
 from ..schemas import ModelConfig
 
@@ -12,6 +13,7 @@ class ModelFactory:
         "garch": GARCHModel,
         "psoqrnn": PSOQRNNModel,
         "ceemdan_lstm": CEEMDANLSTMModel,
+        "naive": NaiveModel,
     }
 
     @classmethod

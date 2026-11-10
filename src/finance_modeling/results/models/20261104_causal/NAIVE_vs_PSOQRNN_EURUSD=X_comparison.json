@@ -1,0 +1,13 @@
+{
+    "baseline_model": "NAIVE",
+    "challenger_model": "PSOQRNN",
+    "asset": "EURUSD=X",
+    "rmse_baseline": 8.390796891403705e-05,
+    "rmse_challenger": 8.38601981695418e-05,
+    "rmse_diff": -4.777074449525292e-08,
+    "mae_baseline": 2.006898667092256e-05,
+    "mae_challenger": 2.0187049071274992e-05,
+    "mae_diff": 1.1806240035243406e-07,
+    "dm_statistic": 1.8097863264186118,
+    "dm_p_value": 0.07048196499629529
+}

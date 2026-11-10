@@ -1,0 +1,7 @@
+{
+    "model_name": "NAIVE",
+    "asset": "BTC-USD",
+    "rmse": 0.0004751886299740821,
+    "mae": 0.00013909424545455366,
+    "versus_baseline": true
+}

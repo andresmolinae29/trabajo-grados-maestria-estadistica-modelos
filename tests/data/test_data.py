@@ -197,3 +197,17 @@ def test_pipeline_volatility_has_no_leading_nans_from_rolling_window() -> None:
 
     assert result.volatility_series is not None
     assert result.volatility_series.isna().sum() == 0
+
+
+def test_innovations_require_returns() -> None:
+    preprocessor = DataPreprocessor(make_time_series_input(pd.Series([100.0, 101.0])))
+
+    with pytest.raises(ValueError, match="innovations"):
+        preprocessor._innovations_series()
+
+
+def test_volatility_requires_returns() -> None:
+    preprocessor = DataPreprocessor(make_time_series_input(pd.Series([100.0, 101.0])))
+
+    with pytest.raises(ValueError, match="volatility"):
+        preprocessor._volatility_series()

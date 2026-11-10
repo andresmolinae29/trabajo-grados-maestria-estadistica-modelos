@@ -1,0 +1,13 @@
+{
+    "baseline_model": "NAIVE",
+    "challenger_model": "PSOQRNN",
+    "asset": "^GSPC",
+    "rmse_baseline": 0.0003450092859848989,
+    "rmse_challenger": 0.00034509435422894446,
+    "rmse_diff": 8.50682440455431e-08,
+    "mae_baseline": 0.00010913421089120374,
+    "mae_challenger": 0.00010977748773511879,
+    "mae_diff": 6.432768439150482e-07,
+    "dm_statistic": -0.42423849002218417,
+    "dm_p_value": 0.6715860039188687
+}

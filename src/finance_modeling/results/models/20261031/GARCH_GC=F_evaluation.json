@@ -1,0 +1,7 @@
+{
+    "model_name": "GARCH",
+    "asset": "GC=F",
+    "rmse": 0.0017852385564899327,
+    "mae": 0.0015232333470417698,
+    "versus_baseline": true
+}

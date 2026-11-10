@@ -1,0 +1,7 @@
+{
+    "model_name": "GARCH",
+    "asset": "EURUSD=X",
+    "rmse": 0.0006683604861770158,
+    "mae": 0.0006395087882078989,
+    "versus_baseline": true
+}

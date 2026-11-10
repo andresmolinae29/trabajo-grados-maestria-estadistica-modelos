@@ -1,0 +1,13 @@
+{
+    "baseline_model": "NAIVE",
+    "challenger_model": "GARCH",
+    "asset": "BTC-USD",
+    "rmse_baseline": 0.0004722369917662511,
+    "rmse_challenger": 0.002273773439782739,
+    "rmse_diff": 0.001801536448016488,
+    "mae_baseline": 0.00013868517576132896,
+    "mae_challenger": 0.001687788088902109,
+    "mae_diff": 0.00154910291314078,
+    "dm_statistic": -25.771686583635017,
+    "dm_p_value": 2.2181989219845325e-131
+}

@@ -85,3 +85,64 @@ def test_load_data_config_parses_assets_from_project_yaml(tmp_path: Path, monkey
     assert data_config.assets[0].symbol == "BTC-USD"
     assert data_config.assets[0].asset_type.value == "crypto"
     assert data_config.assets[0].active is True
+
+
+def test_load_garch_selection_indexes_preselected_models_by_symbol(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    config_dir = tmp_path / "config"
+    config_dir.mkdir()
+    (config_dir / "garch_selection.yml").write_text(
+        "- symbol: BTC-USD\n"
+        "  candidates:\n"
+        "    - hyperparameters: {vol: FIGARCH, p: 1, q: 1, dist: t}\n"
+        "      justification: Memoria larga.\n"
+        "    - hyperparameters: {p: 1, q: 1, dist: t}\n"
+        "      justification: Referencia simple.\n",
+        encoding="utf-8",
+    )
+    ConfigLoader.load_config.cache_clear()
+    monkeypatch.setattr("finance_modeling.config.config.get_main_root", lambda: str(tmp_path))
+
+    selections = ConfigLoader().load_garch_selection()
+
+    assert list(selections) == ["BTC-USD"]
+    candidates = selections["BTC-USD"].candidates
+    assert candidates[0].hyperparameters == {"vol": "FIGARCH", "p": 1, "q": 1, "dist": "t"}
+    assert candidates[1].justification == "Referencia simple."
+
+
+def test_load_garch_selection_returns_empty_dict_for_empty_file(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    config_dir = tmp_path / "config"
+    config_dir.mkdir()
+    (config_dir / "garch_selection.yml").write_text("", encoding="utf-8")
+    ConfigLoader.load_config.cache_clear()
+    monkeypatch.setattr("finance_modeling.config.config.get_main_root", lambda: str(tmp_path))
+
+    assert ConfigLoader().load_garch_selection() == {}
+
+
+def test_load_model_config_reads_the_requested_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    config_dir = tmp_path / "config"
+    config_dir.mkdir()
+    (config_dir / "experiment_config.yml").write_text("- experiment_name: base\n- name: NAIVE\n", encoding="utf-8")
+    (config_dir / "other.yml").write_text(
+        "- experiment_name: other\n"
+        "- name: PSOQRNN\n"
+        "  causal: true\n"
+        "  n_trials: 2\n"
+        "  search_space:\n"
+        "    n_hidden: [1, 2]\n",
+        encoding="utf-8",
+    )
+    ConfigLoader.load_config.cache_clear()
+    monkeypatch.setattr("finance_modeling.config.config.get_main_root", lambda: str(tmp_path))
+
+    base = ConfigLoader().load_model_config()
+    other = ConfigLoader().load_model_config("other.yml")
+
+    assert base.experiment_name == "base" and base.models[0].causal is False
+    assert other.experiment_name == "other"
+    assert (other.models[0].causal, other.models[0].n_trials, other.models[0].search_space) == (True, 2, {"n_hidden": [1, 2]})

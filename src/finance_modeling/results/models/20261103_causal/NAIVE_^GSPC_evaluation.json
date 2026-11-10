@@ -1,0 +1,7 @@
+{
+    "model_name": "NAIVE",
+    "asset": "^GSPC",
+    "rmse": 0.0003255683468896372,
+    "mae": 9.997448780721072e-05,
+    "versus_baseline": true
+}

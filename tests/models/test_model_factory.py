@@ -6,6 +6,7 @@ from finance_modeling.models.base import BaseVolatilityModel
 from finance_modeling.models.ceemdan_lstm import CEEMDANLSTMModel
 from finance_modeling.models.garch import GARCHModel
 from finance_modeling.models.model_factory import ModelFactory
+from finance_modeling.models.naive import NaiveModel
 from finance_modeling.models.psoqrnn import PSOQRNNModel
 from finance_modeling.schemas import ModelConfig
 
@@ -32,6 +33,7 @@ def test_registry_maps_expected_model_names_to_classes() -> None:
         "garch": GARCHModel,
         "psoqrnn": PSOQRNNModel,
         "ceemdan_lstm": CEEMDANLSTMModel,
+        "naive": NaiveModel,
     }
 
 

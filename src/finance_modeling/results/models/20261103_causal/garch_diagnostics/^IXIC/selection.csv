@@ -1,0 +1,4 @@
+vol,p,o,q,dist,aic,bic,admissible,chosen,justification
+GARCH,1,0,1,t,4952.293731692995,4974.99405912386,True,False,"Referencia simétrica y más simple, con persistencia de 0,89, para medir cuánto aporta el término asimétrico."
+GARCH,1,1,1,t,4931.955817525093,4960.331226813675,True,True,"La prueba de sesgo de signo antes de estimar es significativa (p = 0,01) y gamma es significativo, con persistencia de 0,92; recoge la respuesta asimétrica a los choques."
+FIGARCH,0,0,0,t,4950.392347587485,4967.417593160634,True,False,"Único FIGARCH admisible (d = 0,38), con todos sus coeficientes significativos; permite contrastar la memoria larga frente a las especificaciones de memoria corta."

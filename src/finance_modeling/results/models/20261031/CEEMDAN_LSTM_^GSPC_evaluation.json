@@ -1,0 +1,7 @@
+{
+    "model_name": "CEEMDAN_LSTM",
+    "asset": "^GSPC",
+    "rmse": 0.0036046261170913536,
+    "mae": 0.0033462146491208783,
+    "versus_baseline": true
+}

@@ -1,0 +1,13 @@
+{
+    "baseline_model": "NAIVE",
+    "challenger_model": "CEEMDAN_LSTM",
+    "asset": "GC=F",
+    "rmse_baseline": 0.00044446694860275274,
+    "rmse_challenger": 0.0004627546925532085,
+    "rmse_diff": 1.8287743950455733e-05,
+    "mae_baseline": 9.746947893993763e-05,
+    "mae_challenger": 0.00018802409794711078,
+    "mae_diff": 9.055461900717314e-05,
+    "dm_statistic": -6.555343729384426,
+    "dm_p_value": 7.063908519392516e-11
+}

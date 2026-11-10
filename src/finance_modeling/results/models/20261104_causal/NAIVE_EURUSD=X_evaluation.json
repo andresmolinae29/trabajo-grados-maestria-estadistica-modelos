@@ -1,0 +1,7 @@
+{
+    "model_name": "NAIVE",
+    "asset": "EURUSD=X",
+    "rmse": 8.390796891403705e-05,
+    "mae": 2.006898667092256e-05,
+    "versus_baseline": true
+}

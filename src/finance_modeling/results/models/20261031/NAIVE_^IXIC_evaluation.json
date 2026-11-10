@@ -1,0 +1,7 @@
+{
+    "model_name": "NAIVE",
+    "asset": "^IXIC",
+    "rmse": 0.0004975138742167077,
+    "mae": 0.00014530264237736271,
+    "versus_baseline": true
+}

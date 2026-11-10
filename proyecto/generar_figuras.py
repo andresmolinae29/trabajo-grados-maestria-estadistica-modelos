@@ -3,9 +3,8 @@ predicciones de cada modelo.
 
 Produce dos familias de figuras:
 
-* ``iniciales/<activo>.png`` --- gráfico OHLC del precio, sobre los primeros
-  5 000 registros de la serie curada (o la serie completa si tiene menos),
-  que es exactamente el recorte que mostraban las versiones originales.
+* ``iniciales/<activo>.png`` --- gráfico OHLC del precio sobre toda la serie
+  curada.
 * ``<activo>_<modelo>.png`` --- volatilidad predicha vs. realizada sobre el
   conjunto de prueba, a partir de los CSV de predicciones de cada modelo.
 
@@ -26,11 +25,11 @@ import plotly.graph_objects as go
 
 RAIZ = Path(__file__).resolve().parent.parent
 DATOS = RAIZ / "src" / "finance_modeling" / "data" / "files"
-PREDICCIONES = RAIZ / "src" / "finance_modeling" / "results" / "models" / "20260629"
+PREDICCIONES = RAIZ / "src" / "finance_modeling" / "results" / "models" / "20261104_causal"
 FIGURAS = Path(__file__).resolve().parent / "las_figuras"
 
-# Recorte usado por las figuras originales de precios.
-MAX_REGISTROS = 5000
+# Separación máxima entre dos barras consecutivas que se unen con una línea.
+MAXIMO_ENTRE_BARRAS = pd.Timedelta(hours=1)
 
 # Lienzo lógico y factor de escala del render. El PNG resultante mide
 # ANCHO*ESCALA x ALTO*ESCALA px, lo que a \textwidth (~15 cm) deja unos 400 ppp.
@@ -97,6 +96,7 @@ def _disenio_base() -> dict:
         paper_bgcolor="white",
         plot_bgcolor="white",
         font=dict(family=FUENTE, color=NEGRO_TEXTO),
+        separators=", ",
         xaxis=dict(eje),
         yaxis=dict(eje),
         margin=dict(l=135, r=30, t=30, b=95),
@@ -134,7 +134,7 @@ def _escala_ticks(rango: float) -> tuple[float, str]:
 def _leer_curado(carpeta: str) -> pd.DataFrame:
     (ruta,) = (DATOS / carpeta).glob("*_curated.csv")
     df = pd.read_csv(ruta, sep=";", parse_dates=["timestamp"])
-    return df.sort_values("timestamp").head(MAX_REGISTROS)
+    return df.sort_values("timestamp")
 
 
 def figura_precio(carpeta: str) -> go.Figure:
@@ -158,17 +158,35 @@ def figura_precio(carpeta: str) -> go.Figure:
     return fig
 
 
+def _fechas_comunes(simbolo: str) -> set:
+    """Fechas cubiertas por todos los modelos: las mismas de las tablas de la tesis."""
+    comunes = None
+    for modelo in [*MODELOS.values(), "NAIVE"]:
+        ruta = PREDICCIONES / f"{modelo}_{simbolo}_predictions.csv"
+        fechas = set(pd.read_csv(ruta, parse_dates=["timestamp"])["timestamp"])
+        comunes = fechas if comunes is None else comunes & fechas
+    return comunes
+
+
+def _sin_lineas_en_huecos(df: pd.DataFrame) -> pd.DataFrame:
+    """Corta las líneas donde el mercado no opera, en lugar de unirlas con una recta."""
+    cortes = df.loc[df["timestamp"].diff() > MAXIMO_ENTRE_BARRAS, ["timestamp"]].copy()
+    cortes["timestamp"] -= pd.Timedelta(minutes=1)
+    return pd.concat([df, cortes]).sort_values("timestamp")
+
+
 def figura_modelo(simbolo: str, modelo: str) -> go.Figure:
     """Volatilidad predicha vs. realizada para un modelo y un activo."""
     ruta = PREDICCIONES / f"{modelo}_{simbolo}_predictions.csv"
     df = pd.read_csv(ruta, parse_dates=["timestamp"]).sort_values("timestamp")
+    df = _sin_lineas_en_huecos(df[df["timestamp"].isin(_fechas_comunes(simbolo))])
 
     fig = go.Figure()
     fig.add_trace(
         go.Scatter(
             x=df["timestamp"],
             y=df["predicted_value"],
-            name="Prediccion",
+            name="Predicción",
             mode="lines",
             line=dict(color=ROJO_PREDICCION, width=1.6, dash="dot"),
         )
@@ -210,6 +228,7 @@ def figura_modelo(simbolo: str, modelo: str) -> go.Figure:
 
 
 def main() -> None:
+    global PREDICCIONES
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--outdir",
@@ -222,12 +241,19 @@ def main() -> None:
         choices=["precios", "modelos"],
         help="generar únicamente una de las dos familias de figuras",
     )
+    parser.add_argument(
+        "--experimento",
+        default=PREDICCIONES.name,
+        help=f"carpeta de resultados con las predicciones (por defecto {PREDICCIONES.name})",
+    )
     args = parser.parse_args()
 
+    PREDICCIONES = PREDICCIONES.parent / args.experimento
+    args.outdir.mkdir(parents=True, exist_ok=True)
     destino_precios = args.outdir / "iniciales"
-    destino_precios.mkdir(parents=True, exist_ok=True)
 
     if args.solo != "modelos":
+        destino_precios.mkdir(exist_ok=True)
         for nombre, (carpeta, _, _) in ACTIVOS.items():
             salida = destino_precios / f"{nombre}.png"
             figura_precio(carpeta).write_image(

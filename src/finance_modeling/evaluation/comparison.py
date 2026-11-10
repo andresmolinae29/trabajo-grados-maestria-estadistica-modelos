@@ -4,8 +4,7 @@ import os
 import pandas as pd
 
 from .metrics import Metrics
-from ..schemas import EvaluationResult, ComparisonResult, PredictionResult
-from ..utils import convert_list_to_series
+from ..schemas import EvaluationResult, ComparisonResult
 
 
 class ModelComparator:
@@ -52,31 +51,3 @@ class ModelComparator:
         )
         with open(os.path.join(experiment_path, file_name), "w") as file_pointer:
             json.dump(comparison_result.model_dump(), file_pointer, indent=4)
-
-    @classmethod
-    def compare_from_timeinput_and_prediction_results(
-        cls,
-        baseline: EvaluationResult,
-        challenger: EvaluationResult,
-        y_true: pd.Series,
-        pred_baseline: PredictionResult,
-        pred_challenger: PredictionResult
-    ) -> ComparisonResult:
-        comparator = cls()
-
-        converted_pred_baseline = convert_list_to_series(
-            [row.timestamp for row in pred_baseline.rows],
-            [row.predicted_value for row in pred_baseline.rows],
-        )
-        converted_pred_challenger = convert_list_to_series(
-            [row.timestamp for row in pred_challenger.rows],
-            [row.predicted_value for row in pred_challenger.rows],
-        )
-
-        return comparator.compare(
-            baseline=baseline,
-            challenger=challenger,
-            y_true=y_true,
-            y_pred_baseline=converted_pred_baseline,
-            y_pred_challenger=converted_pred_challenger
-        )

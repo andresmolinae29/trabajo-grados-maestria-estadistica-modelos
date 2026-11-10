@@ -1,0 +1,13 @@
+{
+    "baseline_model": "GARCH",
+    "challenger_model": "NAIVE",
+    "asset": "EURUSD=X",
+    "rmse_baseline": 0.0006687840693593123,
+    "rmse_challenger": 8.390796891403705e-05,
+    "rmse_diff": -0.0005848761004452753,
+    "mae_baseline": 0.000639963202473578,
+    "mae_challenger": 2.006898667092256e-05,
+    "mae_diff": -0.0006198942158026554,
+    "dm_statistic": 64.5024622984251,
+    "dm_p_value": 0.0
+}

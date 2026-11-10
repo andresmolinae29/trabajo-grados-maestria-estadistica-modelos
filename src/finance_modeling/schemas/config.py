@@ -13,6 +13,21 @@ class ModelConfig(BaseModel):
     name: str
     hyperparameters_list: list[dict[str, Any]] = Field(default_factory=list)
     random_seed: int = 42
+    seeds: list[int] = Field(default_factory=lambda: [42])
+    causal: bool = False
+    train_context: bool = False
+    search_space: dict[str, list[Any]] = Field(default_factory=dict)
+    n_trials: int = Field(default=0, ge=0)
+
+
+class GarchCandidate(BaseModel):
+    hyperparameters: dict[str, Any]
+    justification: str = Field(min_length=1)
+
+
+class GarchSelection(BaseModel):
+    symbol: str
+    candidates: list[GarchCandidate] = Field(min_length=2)
 
 
 class ExperimentConfig(BaseModel):

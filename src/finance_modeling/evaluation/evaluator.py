@@ -3,8 +3,7 @@ import pandas as pd
 import os
 
 from .metrics import Metrics
-from ..schemas import EvaluationResult, PredictionResult, TimeSeriesInput
-from ..utils import convert_list_to_series
+from ..schemas import EvaluationResult
 
 
 class Evaluator:
@@ -17,27 +16,6 @@ class Evaluator:
         mae = Metrics.mean_absolute_error(y_true, y_pred)
 
         return EvaluationResult(model_name=model_name, asset=asset, rmse=rmse, mae=mae)
-
-    @classmethod
-    def from_timeinput_and_prediction_result(
-        cls, y_true: TimeSeriesInput, y_pred: PredictionResult
-    ) -> EvaluationResult:
-
-        y_true_series = y_true.test_volatility_raw
-        if y_true_series.empty:
-            y_true_series = y_true.test_volatility
-
-        y_pred_series = convert_list_to_series(
-            [row.timestamp for row in y_pred.rows],
-            [row.predicted_value for row in y_pred.rows],
-        )
-
-        return cls().evaluate(
-            model_name=y_pred.model_name,
-            asset=y_pred.asset,
-            y_true=y_true_series,
-            y_pred=y_pred_series,
-        )
 
     @staticmethod
     def save_evaluation_results(

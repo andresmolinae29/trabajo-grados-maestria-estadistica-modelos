@@ -1,0 +1,7 @@
+{
+    "model_name": "PSOQRNN",
+    "asset": "ETH-USD",
+    "rmse": 0.0018161571496356221,
+    "mae": 0.0013213652127888054,
+    "versus_baseline": true
+}

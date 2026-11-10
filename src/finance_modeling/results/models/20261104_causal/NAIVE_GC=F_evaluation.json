@@ -1,0 +1,7 @@
+{
+    "model_name": "NAIVE",
+    "asset": "GC=F",
+    "rmse": 0.00044429709484743494,
+    "mae": 9.791206987924007e-05,
+    "versus_baseline": true
+}

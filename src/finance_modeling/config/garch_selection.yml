@@ -1,0 +1,83 @@
+# Modelos preseleccionados por activo a partir de results/garch_diagnostics/<activo>/candidates.csv,
+# sin mirar el conjunto de prueba. Cada activo necesita al menos dos, con justificación técnica.
+# Deben estar en la lista de experiment_config.yml, y el AIC decide entre ellos.
+# Un activo que no aparezca aquí se selecciona por AIC entre todos los candidatos.
+#
+# Las cifras corresponden al tramo de entrenamiento. La distribución t asimétrica solo se
+# considera cuando el valor absoluto de la asimetría de los retornos es de al menos 0,3.
+
+- symbol: "BTC-USD"
+  candidates:
+    - hyperparameters: {vol: FIGARCH, p: 1, q: 1, dist: t}
+      justification: >-
+        La FAC de los cuadrados decae lentamente y los GARCH con t alcanzan persistencia 1,00, lo que
+        apunta a memoria larga; d = 0,47 es significativo y los residuos pasan todas las pruebas. La
+        curtosis de 20 justifica la t y la asimetría de -0,08 no justifica la t asimétrica.
+    - hyperparameters: {vol: FIGARCH, p: 0, q: 1, dist: t}
+      justification: >-
+        Variante más parsimoniosa con la misma memoria larga (d = 0,38), sin el término phi; sus
+        coeficientes son significativos y sus residuos pasan todas las pruebas.
+
+- symbol: "ETH-USD"
+  candidates:
+    - hyperparameters: {vol: FIGARCH, p: 1, q: 1, dist: t}
+      justification: >-
+        Todos los GARCH con t alcanzan persistencia 1,00, lo que apunta a memoria larga; d = 0,41 es
+        significativo y los residuos pasan todas las pruebas. La curtosis de 26 justifica la t.
+    - hyperparameters: {vol: FIGARCH, p: 1, q: 1, dist: skewt}
+      justification: >-
+        Misma dinámica de memoria larga (d = 0,41), con t asimétrica porque la asimetría de los
+        retornos es de 0,53; permite contrastar si esa asimetría mejora el ajuste.
+    - hyperparameters: {vol: FIGARCH, p: 0, q: 1, dist: t}
+      justification: >-
+        Variante más parsimoniosa (d = 0,34), sin el término phi; sus coeficientes son significativos
+        y sus residuos pasan todas las pruebas.
+
+- symbol: "EURUSD=X"
+  candidates:
+    - hyperparameters: {p: 1, q: 1, dist: t}
+      justification: >-
+        Especificación más simple que supera las reglas: persistencia de 0,99 sin llegar a 1 y
+        coeficientes significativos. La curtosis de 39 justifica la t.
+    - hyperparameters: {vol: FIGARCH, p: 1, q: 1, dist: t}
+      justification: >-
+        Permite contrastar la memoria larga frente a la alta persistencia del GARCH; d = 0,75 es
+        significativo. Se prefiere a la variante sin phi, cuyo d = 0,95 es casi integrado, y la
+        asimetría de -0,08 no justifica la t asimétrica.
+
+- symbol: "^GSPC"
+  candidates:
+    - hyperparameters: {p: 1, q: 1, dist: t}
+      justification: >-
+        Especificación simple que supera las reglas, con persistencia de 0,98. La curtosis de 35
+        justifica la t. El GJR tiene el menor AIC, pero se descarta porque su persistencia es 1,00.
+    - hyperparameters: {vol: FIGARCH, p: 0, q: 0, dist: t}
+      justification: >-
+        Único FIGARCH admisible (d = 0,37), con todos sus coeficientes significativos; los valores
+        absolutos de los retornos muestran dependencia aunque sus cuadrados no.
+
+- symbol: "^IXIC"
+  candidates:
+    - hyperparameters: {p: 1, o: 1, q: 1, power: 2.0, dist: t}
+      justification: >-
+        La prueba de sesgo de signo antes de estimar es significativa (p = 0,01) y gamma es
+        significativo, con persistencia de 0,92; recoge la respuesta asimétrica a los choques.
+    - hyperparameters: {p: 1, q: 1, dist: t}
+      justification: >-
+        Referencia simétrica y más simple, con persistencia de 0,89, para medir cuánto aporta el
+        término asimétrico.
+    - hyperparameters: {vol: FIGARCH, p: 0, q: 0, dist: t}
+      justification: >-
+        Único FIGARCH admisible (d = 0,38), con todos sus coeficientes significativos; permite
+        contrastar la memoria larga frente a las especificaciones de memoria corta.
+
+- symbol: "GC=F"
+  candidates:
+    - hyperparameters: {vol: FIGARCH, p: 0, q: 0, dist: t}
+      justification: >-
+        Único modelo con t que supera las reglas; d = 0,44 es significativo y la curtosis de 41
+        justifica la t. Los demás modelos con t no convergen, alcanzan persistencia 1,00 o llevan d a 1.
+    - hyperparameters: {p: 1, q: 1, dist: normal}
+      justification: >-
+        Único otro modelo admisible, con persistencia de 0,88. Se incluye como referencia simple,
+        aunque la curtosis de 41 contradice el supuesto de normalidad.

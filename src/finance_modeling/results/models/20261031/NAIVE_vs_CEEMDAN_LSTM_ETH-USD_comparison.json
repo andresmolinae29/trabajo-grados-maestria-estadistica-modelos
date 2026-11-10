@@ -1,0 +1,13 @@
+{
+    "baseline_model": "NAIVE",
+    "challenger_model": "CEEMDAN_LSTM",
+    "asset": "ETH-USD",
+    "rmse_baseline": 0.0005999764411501754,
+    "rmse_challenger": 0.010809037031085374,
+    "rmse_diff": 0.010209060589935199,
+    "mae_baseline": 0.00018482096108296287,
+    "mae_challenger": 0.009287292980399459,
+    "mae_diff": 0.009102472019316495,
+    "dm_statistic": -57.07337630907382,
+    "dm_p_value": 0.0
+}

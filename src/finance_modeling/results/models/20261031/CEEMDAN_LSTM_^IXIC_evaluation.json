@@ -1,0 +1,7 @@
+{
+    "model_name": "CEEMDAN_LSTM",
+    "asset": "^IXIC",
+    "rmse": 0.0014452262332765187,
+    "mae": 0.001280837748279643,
+    "versus_baseline": true
+}

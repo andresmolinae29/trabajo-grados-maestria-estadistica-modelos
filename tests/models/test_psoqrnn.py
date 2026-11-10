@@ -133,3 +133,58 @@ def test_predict_returns_array_matching_test_set_length() -> None:
     assert isinstance(predictions, np.ndarray)
     assert predictions.shape == (len(model.X_test),)
     assert np.all(predictions >= -1) and np.all(predictions <= 1)
+
+
+def test_swarm_fitness_matches_fitness_of_each_particle() -> None:
+    pso = PSO(tau=0.5)
+    qrnn = QRNN(n_hidden=3)
+    rng = np.random.default_rng(4)
+    swarm = rng.uniform(-1, 1, (5, qrnn.n_params()))
+    X = torch.as_tensor(rng.normal(size=(20, 2)).astype(np.float32))
+    y = torch.as_tensor(rng.normal(size=20).astype(np.float32))
+
+    batched = pso._swarm_fitness(swarm, X, y, n_hidden=3)
+    one_by_one = [pso._fitness(particle.astype(np.float32), qrnn, X, y.unsqueeze(1)) for particle in swarm]
+
+    np.testing.assert_allclose(batched, one_by_one, rtol=1e-5)
+
+
+def test_pso_hyperparameters_can_be_configured() -> None:
+    model = PSOQRNNModel(
+        config=ModelConfig(name="PSOQRNN"),
+        symbol="BTC-USD",
+        innovation=make_innovation(300),
+        volatility=make_volatility(12),
+        n_particles=7,
+        max_iter=9,
+        inertia=0.5,
+        c1=1.0,
+        c2=1.5,
+        v_max=0.1,
+        init="symmetric",
+    )
+
+    assert (model.pso.n_particles, model.pso.max_iter, model.pso.inertia) == (7, 9, 0.5)
+    assert (model.pso.c1, model.pso.c2, model.pso.v_min, model.pso.v_max) == (1.0, 1.5, -0.1, 0.1)
+    assert model.pso.init == "symmetric"
+
+
+def test_causal_dataset_uses_last_known_return_and_training_mean() -> None:
+    n_volatility = 12
+    returns = make_innovation(n_volatility + 252)
+    volatility = make_volatility(n_volatility)
+
+    model = PSOQRNNModel(
+        config=ModelConfig(name="PSOQRNN", causal=True),
+        symbol="BTC-USD",
+        returns=returns,
+        volatility=volatility,
+    )
+
+    r = returns.to_numpy()
+    split = int((n_volatility - 1) * 0.8)
+    expected_eps = r[251:251 + n_volatility - 1] - r[:split + 252].mean()
+    np.testing.assert_allclose(model.X_train[:, 1], expected_eps[:split], rtol=1e-5)
+    np.testing.assert_allclose(model.X_test[:, 1], expected_eps[split:], rtol=1e-5)
+    np.testing.assert_allclose(model.X_train[:, 0], volatility.to_numpy()[:split], rtol=1e-6)
+    np.testing.assert_allclose(model.y_test, volatility.to_numpy()[split + 1:], rtol=1e-6)

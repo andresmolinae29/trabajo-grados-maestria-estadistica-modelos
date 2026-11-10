@@ -1,0 +1,13 @@
+{
+    "baseline_model": "NAIVE",
+    "challenger_model": "PSOQRNN",
+    "asset": "ETH-USD",
+    "rmse_baseline": 0.0005978301791037911,
+    "rmse_challenger": 0.0005978930778115034,
+    "rmse_diff": 6.289870771230763e-08,
+    "mae_baseline": 0.00018371477587923805,
+    "mae_challenger": 0.0001839437506349894,
+    "mae_diff": 2.2897475575136043e-07,
+    "dm_statistic": -0.5208778870973149,
+    "dm_p_value": 0.6024934597292297
+}

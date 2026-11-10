@@ -3,24 +3,13 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import pytest
 
+from finance_modeling.evaluation import Metrics
 from finance_modeling.evaluation.comparison import ModelComparator
-from finance_modeling.schemas import ComparisonResult, EvaluationResult, PredictionResult, PredictionRow
-
-
-def make_prediction_result(model_name: str, values: list[float]) -> PredictionResult:
-    index = pd.date_range("2026-01-01", periods=len(values), freq="15min")
-    return PredictionResult(
-        model_name=model_name,
-        asset="BTC-USD",
-        horizon=len(values),
-        rows=[
-        PredictionRow(timestamp=timestamp, predicted_value=value, real_value=None)
-            for timestamp, value in zip(index, values)
-        ],
-    )
+from finance_modeling.schemas import ComparisonResult, EvaluationResult
 
 
 def test_compare_returns_expected_differences(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -57,45 +46,6 @@ def test_compare_returns_expected_differences(monkeypatch: pytest.MonkeyPatch) -
     assert result.dm_p_value == 0.03
 
 
-def test_compare_from_timeinput_and_prediction_results_converts_prediction_rows(monkeypatch: pytest.MonkeyPatch) -> None:
-    baseline = EvaluationResult(model_name="GARCH", asset="BTC-USD", rmse=1.0, mae=0.8)
-    challenger = EvaluationResult(model_name="PSO-QRNN", asset="BTC-USD", rmse=0.7, mae=0.5)
-    y_true = pd.Series([1.0, 2.0, 3.0], index=pd.date_range("2026-01-01", periods=3, freq="15min"))
-    baseline_prediction = make_prediction_result("GARCH", [1.1, 2.1, 3.1])
-    challenger_prediction = make_prediction_result("PSO-QRNN", [0.9, 1.9, 2.9])
-    captured = {}
-
-    def fake_compare(self, baseline, challenger, y_pred_baseline, y_pred_challenger, y_true):
-        captured["baseline"] = baseline
-        captured["challenger"] = challenger
-        captured["y_pred_baseline"] = y_pred_baseline
-        captured["y_pred_challenger"] = y_pred_challenger
-        captured["y_true"] = y_true
-        return ComparisonResult(
-            baseline_model=baseline.model_name,
-            challenger_model=challenger.model_name,
-            asset=baseline.asset,
-        )
-
-    monkeypatch.setattr(ModelComparator, "compare", fake_compare)
-
-    result = ModelComparator.compare_from_timeinput_and_prediction_results(
-        baseline=baseline,
-        challenger=challenger,
-        y_true=y_true,
-        pred_baseline=baseline_prediction,
-        pred_challenger=challenger_prediction,
-    )
-
-    assert result.baseline_model == "GARCH"
-    assert result.challenger_model == "PSO-QRNN"
-    expected_baseline = pd.Series([1.1, 2.1, 3.1], index=y_true.index)
-    expected_challenger = pd.Series([0.9, 1.9, 2.9], index=y_true.index)
-    pd.testing.assert_series_equal(captured["y_pred_baseline"], expected_baseline, check_freq=False)
-    pd.testing.assert_series_equal(captured["y_pred_challenger"], expected_challenger, check_freq=False)
-    pd.testing.assert_series_equal(captured["y_true"], y_true)
-
-
 def test_save_comparison_results_writes_json_file(tmp_path: Path) -> None:
     comparison = ComparisonResult(
         baseline_model="GARCH",
@@ -117,3 +67,25 @@ def test_save_comparison_results_writes_json_file(tmp_path: Path) -> None:
     assert saved_file.exists()
     payload = json.loads(saved_file.read_text(encoding="utf-8"))
     assert payload == comparison.model_dump()
+
+
+def test_compare_computes_diebold_mariano_with_the_library() -> None:
+    rng = np.random.default_rng(0)
+    index = pd.date_range("2026-01-01", periods=30, freq="15min")
+    y_true = pd.Series(rng.normal(0.5, 0.05, 30), index=index)
+    worse = y_true + rng.normal(0, 0.05, 30)
+    better = y_true + rng.normal(0, 0.01, 30)
+    baseline = EvaluationResult(model_name="GARCH", asset="BTC-USD", rmse=0.05, mae=0.04)
+    challenger = EvaluationResult(model_name="PSOQRNN", asset="BTC-USD", rmse=0.01, mae=0.008)
+
+    result = ModelComparator().compare(
+        baseline=baseline,
+        challenger=challenger,
+        y_pred_baseline=worse,
+        y_pred_challenger=better,
+        y_true=y_true,
+    )
+
+    expected = Metrics.diebold_mariano_test(y_true, worse, better)
+    assert (result.dm_statistic, result.dm_p_value) == pytest.approx(expected)
+    assert result.dm_p_value < 0.05

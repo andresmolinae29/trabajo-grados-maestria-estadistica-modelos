@@ -1,4 +1,4 @@
-- experiment_name: "20260629"
+- experiment_name: "20261031"
 - name: "GARCH"
   hyperparameters_list:
     - p: 1
@@ -26,7 +26,47 @@
       q: 1
       power: 2.0
       dist: skewt
+    - vol: FIGARCH
+      p: 1
+      q: 1
+      dist: normal
+    - vol: FIGARCH
+      p: 0
+      q: 0
+      dist: t
+    - vol: FIGARCH
+      p: 1
+      q: 0
+      dist: t
+    - vol: FIGARCH
+      p: 0
+      q: 1
+      dist: t
+    - vol: FIGARCH
+      p: 1
+      q: 1
+      dist: t
+    - vol: FIGARCH
+      p: 1
+      q: 1
+      dist: skewt
 
 - name: "CEEMDAN_LSTM"
+  seeds: [42, 43, 44]
+  hyperparameters_list:
+    - {window_size: 5, epochs: 80}
+    - {window_size: 5, epochs: 160}
+    - {window_size: 10, epochs: 80}
+    - {window_size: 10, epochs: 160}
+    - {window_size: 20, epochs: 80}
+    - {window_size: 20, epochs: 160}
 
 - name: "PSOQRNN"
+  seeds: [42, 43, 44]
+  hyperparameters_list:
+    - {n_hidden: 2}
+    - {n_hidden: 3}
+    - {n_hidden: 4}
+    - {n_hidden: 5}
+
+- name: "NAIVE"

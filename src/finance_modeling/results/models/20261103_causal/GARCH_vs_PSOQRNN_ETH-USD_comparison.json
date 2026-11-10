@@ -1,0 +1,13 @@
+{
+    "baseline_model": "GARCH",
+    "challenger_model": "PSOQRNN",
+    "asset": "ETH-USD",
+    "rmse_baseline": 0.003170418073122987,
+    "rmse_challenger": 0.0006000399596760256,
+    "rmse_diff": -0.002570378113446962,
+    "mae_baseline": 0.002409163238377111,
+    "mae_challenger": 0.0001850533251769754,
+    "mae_diff": -0.002224109913200136,
+    "dm_statistic": 33.20469223903641,
+    "dm_p_value": 1.3205400755412586e-203
+}

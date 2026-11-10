@@ -1,5 +1,4 @@
 import os
-import pandas as pd
 from functools import lru_cache
 
 
@@ -13,22 +12,6 @@ def validate_file_exists(file_path: str) -> None:
         raise FileNotFoundError(f"File not found at: {file_path}")
 
 
-def generate_future_timestamps(last_index, steps, freq):
-    """
-    last_index: último timestamp de la serie (DatetimeIndex o datetime)
-    steps: número de pasos a predecir
-    freq: frecuencia como string pandas ('D', '15min', etc)
-    """
-    return pd.date_range(start=last_index, periods=steps+1, freq=freq)[1:]
-
-
-def convert_list_to_series(index, y_pred: list) -> pd.Series:
-        return pd.Series(
-            data=y_pred,
-            index=index
-        )
-
-
 def create_experiment_directory(output_dir: str, experiment_name: str) -> str:
 
     path = os.path.join(
@@ -37,18 +20,3 @@ def create_experiment_directory(output_dir: str, experiment_name: str) -> str:
     )
     os.makedirs(path, exist_ok=True)
     return path
-
-
-def prediction_results_to_dataframe(symbol: str, model_name: str, prediction_results) -> pd.DataFrame:
-    """
-    Convierte los resultados de predicción en un DataFrame para su almacenamiento.
-    """
-    return pd.DataFrame(
-        {
-            "timestamp": [row.timestamp for row in prediction_results.rows],
-            "real_value": [row.real_value for row in prediction_results.rows],
-            "predicted_value": [row.predicted_value for row in prediction_results.rows],
-            "model_name": model_name,
-            "symbol": symbol,
-        }
-    )

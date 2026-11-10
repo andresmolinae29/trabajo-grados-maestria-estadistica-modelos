@@ -1,0 +1,4 @@
+vol,p,o,q,dist,aic,bic,admissible,chosen,justification
+FIGARCH,0,0,1,t,25727.347645254333,25756.69165881422,True,False,"Variante mÃ¡s parsimoniosa (d = 0,34), sin el tÃ©rmino phi; sus coeficientes son significativos y sus residuos pasan todas las pruebas."
+FIGARCH,1,0,1,t,25709.050015798704,25745.730032748565,True,True,"Todos los GARCH con t alcanzan persistencia 1,00, lo que apunta a memoria larga; d = 0,41 es significativo y los residuos pasan todas las pruebas. La curtosis de 26 justifica la t."
+FIGARCH,1,0,1,skewt,25710.1130846574,25754.12910499723,True,False,"Misma dinÃ¡mica de memoria larga (d = 0,41), con t asimÃ©trica porque la asimetrÃ­a de los retornos es de 0,53; permite contrastar si esa asimetrÃ­a mejora el ajuste."

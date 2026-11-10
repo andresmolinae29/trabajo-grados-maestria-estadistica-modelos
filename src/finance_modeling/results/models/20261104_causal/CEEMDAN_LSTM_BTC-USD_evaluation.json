@@ -1,0 +1,7 @@
+{
+    "model_name": "CEEMDAN_LSTM",
+    "asset": "BTC-USD",
+    "rmse": 0.0005971033428797286,
+    "mae": 0.00034673617152137614,
+    "versus_baseline": true
+}

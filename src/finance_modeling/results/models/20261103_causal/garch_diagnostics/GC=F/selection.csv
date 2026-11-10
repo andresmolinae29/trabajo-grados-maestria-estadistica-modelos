@@ -1,0 +1,3 @@
+vol,p,o,q,dist,aic,bic,admissible,chosen,justification
+GARCH,1,0,1,normal,20538.650699777114,20559.67867529532,True,False,"Único otro modelo admisible, con persistencia de 0,88. Se incluye como referencia simple, aunque la curtosis de 41 contradice el supuesto de normalidad."
+FIGARCH,0,0,0,t,17717.464810963684,17738.49278648189,True,True,"Único modelo con t que supera las reglas; d = 0,44 es significativo y la curtosis de 41 justifica la t. Los demás modelos con t no convergen, alcanzan persistencia 1,00 o llevan d a 1."

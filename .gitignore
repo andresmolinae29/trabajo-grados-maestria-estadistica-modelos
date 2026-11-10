@@ -222,3 +222,15 @@ test*.ipynb
 
 FORMATO*
 Carta de*
+
+.claude
+Comentarios adicionales*
+Trabajo final*
+TODO_trabajo_final.md
+papers/
+causal_btc/
+forward_rv_btc/
+
+proyecto/*
+!proyecto/*.py
+src/finance_modeling/results/**/*.pkl

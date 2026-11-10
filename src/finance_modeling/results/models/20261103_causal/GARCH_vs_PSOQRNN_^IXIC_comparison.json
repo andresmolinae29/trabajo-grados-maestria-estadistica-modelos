@@ -1,0 +1,13 @@
+{
+    "baseline_model": "GARCH",
+    "challenger_model": "PSOQRNN",
+    "asset": "^IXIC",
+    "rmse_baseline": 0.005716165653768226,
+    "rmse_challenger": 0.0005279234942512763,
+    "rmse_diff": -0.005188242159516949,
+    "mae_baseline": 0.0048984609831862645,
+    "mae_challenger": 0.00015623694693080433,
+    "mae_diff": -0.00474222403625546,
+    "dm_statistic": 21.12685654723144,
+    "dm_p_value": 3.8029711246280274e-70
+}

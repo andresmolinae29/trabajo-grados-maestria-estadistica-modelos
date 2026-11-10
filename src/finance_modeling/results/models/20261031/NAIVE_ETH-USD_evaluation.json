@@ -1,0 +1,7 @@
+{
+    "model_name": "NAIVE",
+    "asset": "ETH-USD",
+    "rmse": 0.0005999764411501754,
+    "mae": 0.00018482096108296287,
+    "versus_baseline": true
+}

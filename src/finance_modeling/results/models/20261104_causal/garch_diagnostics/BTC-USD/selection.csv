@@ -1,0 +1,3 @@
+vol,p,o,q,dist,aic,bic,admissible,chosen,justification
+FIGARCH,0,0,1,t,26018.269749765583,26047.61376332547,True,False,"Variante más parsimoniosa con la misma memoria larga (d = 0,38), sin el término phi; sus coeficientes son significativos y sus residuos pasan todas las pruebas."
+FIGARCH,1,0,1,t,25997.85396194448,26034.53397889434,True,True,"La FAC de los cuadrados decae lentamente y los GARCH con t alcanzan persistencia 1,00, lo que apunta a memoria larga; d = 0,47 es significativo y los residuos pasan todas las pruebas. La curtosis de 20 justifica la t y la asimetría de -0,08 no justifica la t asimétrica."

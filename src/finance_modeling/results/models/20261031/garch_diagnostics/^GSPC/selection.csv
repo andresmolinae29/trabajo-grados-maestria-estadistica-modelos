@@ -1,0 +1,3 @@
+vol,p,o,q,dist,aic,bic,admissible,chosen,justification
+GARCH,1,0,1,t,4656.6083438544065,4679.26760699555,True,False,"EspecificaciÃ³n simple que supera las reglas, con persistencia de 0,98. La curtosis de 35 justifica la t. El GJR tiene el menor AIC, pero se descarta porque su persistencia es 1,00."
+FIGARCH,0,0,0,t,4639.738671215164,4656.733118571021,True,True,"Ãšnico FIGARCH admisible (d = 0,37), con todos sus coeficientes significativos; los valores absolutos de los retornos muestran dependencia aunque sus cuadrados no."

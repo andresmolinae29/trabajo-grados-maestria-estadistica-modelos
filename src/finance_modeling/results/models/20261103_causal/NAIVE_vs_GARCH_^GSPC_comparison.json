@@ -1,0 +1,13 @@
+{
+    "baseline_model": "NAIVE",
+    "challenger_model": "GARCH",
+    "asset": "^GSPC",
+    "rmse_baseline": 0.0003255683468896372,
+    "rmse_challenger": 0.001997239313943154,
+    "rmse_diff": 0.0016716709670535168,
+    "mae_baseline": 9.997448780721072e-05,
+    "mae_challenger": 0.0018727963003828986,
+    "mae_diff": 0.0017728218125756879,
+    "dm_statistic": -28.97368626859579,
+    "dm_p_value": 2.9696442526155613e-101
+}

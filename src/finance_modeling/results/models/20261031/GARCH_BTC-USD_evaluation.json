@@ -1,0 +1,7 @@
+{
+    "model_name": "GARCH",
+    "asset": "BTC-USD",
+    "rmse": 0.002273773439782739,
+    "mae": 0.001687788088902109,
+    "versus_baseline": true
+}
